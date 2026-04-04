@@ -1,0 +1,53 @@
+[
+  {
+    "id": "prod_1",
+    "merchantId": "m_1",
+    "name": "Kabelloser Kopfhörer X100",
+    "smallDesc": "Leichte Over-Ear Kopfhörer mit aktiver Geräuschunterdrückung",
+    "longDesc": "Der X100 liefert satten Klang, lange Akkulaufzeit und Komfort für lange Hörsessions.",
+    "isActive": true,
+    "isFeatured": true,
+    "brand": "SoundPro",
+    "subcategory": ["audio","kopfhörer"],
+    "rating": "4.50",
+    "numReviews": 124,
+    "slug": "kabelloser-kopfhorer-x100",
+    "categoryId": "cat_1",
+    "createdAt": "2026-04-01T08:00:00.000Z",
+    "updatedAt": "2026-04-01T08:00:00.000Z"
+  },
+  {
+    "id": "prod_2",
+    "merchantId": "m_2",
+    "name": "Smart Kaffeemaschine Caffy",
+    "smallDesc": "App-gesteuerte Kaffeemaschine mit Timer",
+    "longDesc": "Brüht perfekten Kaffee per App-Steuerung und spart Energie durch intelligente Zeitpläne.",
+    "isActive": true,
+    "isFeatured": false,
+    "brand": "HomeMaker",
+    "subcategory": ["küche","kaffee"],
+    "rating": "4.10",
+    "numReviews": 42,
+    "slug": "smart-kaffeemaschine-caffy",
+    "categoryId": "cat_2",
+    "createdAt": "2026-03-28T09:30:00.000Z",
+    "updatedAt": "2026-03-28T09:30:00.000Z"
+  },
+  {
+    "id": "prod_3",
+    "merchantId": "m_1",
+    "name": "USB-C Ladegerät 65W",
+    "smallDesc": "Kompaktes Schnellladegerät für Laptop und Handy",
+    "longDesc": "Unterstützt Power Delivery und mehrere Geräte gleichzeitig.",
+    "isActive": true,
+    "isFeatured": false,
+    "brand": "ChargeIt",
+    "subcategory": ["ladegeräte","accessoires"],
+    "rating": "4.20",
+    "numReviews": 88,
+    "slug": "usb-c-ladegerät-65w",
+    "categoryId": "cat_1",
+    "createdAt": "2026-02-15T12:00:00.000Z",
+    "updatedAt": "2026-02-15T12:00:00.000Z"
+  }
+]

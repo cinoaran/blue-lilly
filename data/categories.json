@@ -1,0 +1,14 @@
+[
+  {
+    "id": "cat_1",
+    "name": "Elektronik",
+    "slug": "elektronik",
+    "href": "/category/elektronik"
+  },
+  {
+    "id": "cat_2",
+    "name": "Haushalt",
+    "slug": "haushalt",
+    "href": "/category/haushalt"
+  }
+]
