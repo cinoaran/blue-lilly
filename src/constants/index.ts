@@ -14,20 +14,14 @@ export const MAX_PRODUCTS_LIMIT = 100;
 export const SIDEBAR_WIDTH = "16rem";
 export const SIDEBAR_WIDTH_MOBILE = "18rem";
 
-// lib/constants/index.ts – erweitern
-export const CATEGORY_UNITS = {
-  schuhe: {label: "EU", type: "numeric"},
-  kleidung: {label: "XS-XXL", type: "string"},
-} as const;
+// src/lib/sizes.ts
+export const DEFAULT_UNITS = {
+  international: ["eu", "us", "uk"] as const,
+  length: ["cm", "m", "mm"] as const,
+  weight: ["kg", "g", "mg"] as const,
+  volume: ["l", "ml"] as const,
+  count: ["pcs", "Stk."] as const,
+} satisfies Record<string, readonly string[]>;
 
-export const EU_SIZES = [
-  "35",
-  "36",
-  "37",
-  "38",
-  "39",
-  "40",
-  "41",
-  "42",
-] as const;
-export const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+export type UnitType = keyof typeof DEFAULT_UNITS;
+export type UnitValue = (typeof DEFAULT_UNITS)[UnitType][number];

@@ -1,6 +1,6 @@
 "use client";
 
-import {useUploadThing} from "../../uploadthing/uploadthing";
+import {useUploadThing} from "@/uploadthing/uploadthing";
 import type {Session} from "@/lib/auth";
 import {useRouter} from "next/navigation";
 import {ChangeEvent, useRef, useState} from "react";

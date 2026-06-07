@@ -79,14 +79,14 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main
-            className={`antialiased flex w-full mx-auto min-h-screen flex-col`}
+            className={`antialiased flex flex-col mx-auto min-h-screen w-full my-0 ${montserrat.variable} ${openSans.variable} ${comfortaa.variable}`}
           >
             <SidebarProvider defaultOpen={false}>
               <TooltipProvider>
                 <div className="relative flex items-center h-20 ">
                   <SidebarTrigger className="absolute right-2 top-2 z-50" />
                 </div>
-                <div className="flex-1">
+                <div className="w-full">
                   <Header />
                   {children}
                 </div>

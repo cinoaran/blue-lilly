@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Basis-System */
+  --radius: 0.625rem; /* Alle Ecken: Cards, Buttons, Inputs */
+
+  /* Monochrom Light Mode (Grau-Skala) */
+  --border: oklch(100% 0.00011 271.152); /* #e6e6e6 - Dividers, Card Borders */
+  --background: oklch(
+    96.416% 0.00011 271.152
+  ); /* #ffffff - Haupt-Hintergrund */
+  --foreground: oklch(8% 0 0); /* #141414 - Primärer Text */
+  --gradient-start: oklch(98% 0 0); /* #f8f8f8 - Hero Gradient */
+  --gradient-end: oklch(93.456% 0.00968 298.942); /* #ffffff - Gradient End */
+
+  /* Cards & Panels */
+  --card: oklch(99.336% 0.00316 15.246); /* #f8f8f8 - Produktkarten */
+  --card-foreground: oklch(12% 0 0); /* #1f1f1f - Card Text */
+
+  /* Tooltips */
+  --tooltip: oklch(100% 0 0); /* #ffffff - Tooltips */
+  --tooltip-foreground: oklch(8% 0 0); /* #141414 - Tooltip Text */
+
+  /* Popups/Modals */
+  --popover: oklch(100% 0 0); /* #ffffff - Dropdowns */
+  --popover-foreground: oklch(8% 0 0); /* #141414 */
+
+  /* Interaktionen (Minimal Cyan-Akzent) */
+  --primary: oklch(45.5% 0.1294 245.55); /* #005a99 - NUR Buttons/CTAs */
+  --primary-foreground: oklch(100% 0 0); /* #ffffff - Button Text */
+  --secondary: oklch(90% 0 0); /* #e6e6e6 - Outline Buttons */
+  --secondary-foreground: oklch(95% 0 0);
+
+  /* Text-Hierarchie */
+  --muted: oklch(60% 0 0); /* #999999 - Labels, Secondary Text */
+  --muted-foreground: oklch(40% 0 0); /* #666666 - Muted Text */
+  --accent: oklch(75% 0 0); /* #bfbfbf - Hover States */
+  --accent-foreground: oklch(95% 0 0);
+
+  /* Warnung */
+  --destructive: oklch(63.637% 0.17168 23.295); /* #404040 - Delete Buttons */
+  --destructive-foreground: oklch(
+    100% 0 0
+  ); /* #ffffff - Delete Button Text   */
+  --success: oklch(60% 0.2 120); /* #4caf50 - Success Messages */
+  --success-foreground: oklch(100% 0 0); /* #ffffff - Success Message Text */
+
+  /* Formulare */
+  --input: oklch(100% 0 0); /* #ffffff - Input Background */
+  --ring: oklch(50% 0.1 250); /* Subtiler Focus Ring */
+
+  /* Komponenten */
+  --sheet: oklch(100% 0 0);
+  --sheet-foreground: oklch(35.758% 0.09847 252.813);
+  --sheet-border: oklch(95% 0 0);
+
+  --dropdown: oklch(100% 0 0);
+  --dropdown-foreground: oklch(95% 0 0);
+
+  /* Charts (monochrom Varianten) */
+  --chart-1: oklch(85% 0 0);
+  --chart-2: oklch(75% 0 0);
+  --chart-3: oklch(65% 0 0);
+  --chart-4: oklch(55% 0 0);
+  --chart-5: oklch(45% 0 0);
+
+  /* Sidebar */
+  --sidebar: oklch(99% 0 0);
+  --sidebar-foreground: oklch(95% 0 0);
+  --sidebar-primary: oklch(45.5% 0.1294 245.55); /* Cyan nur hier */
+}
+
+.dark {
+  /* Monochrom Dark Mode */
+  --background: oklch(12% 0 0); /* #1f1f1f - Dark Background */
+  --gradient-start: oklch(15% 0 0); /* #333333 - Dark Gradient */
+  --gradient-end: oklch(32.313% 0.00282 16.587); /* #262626 */
+  --foreground: oklch(95% 0 0); /* #f2f2f2 - Dark Text */
+
+  --card: oklch(18% 0 0); /* #2e2e2e - Dark Cards */
+  --card-foreground: oklch(95% 0 0);
+
+  --popover: oklch(20% 0 0);
+  --popover-foreground: oklch(95% 0 0);
+
+  --muted: oklch(50% 0 0); /* #7e7e7e - Dark Muted */
+  --muted-foreground: oklch(70% 0 0); /* #b3b3b3 - Dark Muted Foreground */
+  --accent: oklch(30% 0 0); /* #4d4d4d - Dark Accent */
+  --accent-foreground: oklch(95% 0 0);
+
+  /*Tooltip */
+  --tooltip: oklch(20% 0 0); /* #333333 - Dark Tooltip */
+  --tooltip-foreground: oklch(95% 0 0);
+
+  /* Komponenten */
+  --sheet: oklch(12% 0 0);
+  --sheet-foreground: oklch(95% 0 0);
+  --sheet-border: oklch(95% 0 0);
+
+  --primary: oklch(81.8% 0.1294 245.55); /* #7ecbff - Dark CTA */
+  --primary-foreground: oklch(95% 0 0); /* #f2f2f2 - Dark CTA Text */
+  --secondary: oklch(30% 0 0);
+  --secondary-foreground: oklch(95% 0 0);
+}
+
+@theme inline {
+  /* Vollständiges Theme Mapping */
+  --color-gradient-start: var(--gradient-start);
+  --color-gradient-end: var(--gradient-end);
+  --color-border: var(--border);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sheet: var(--sheet);
+  --color-sheet-foreground: var(--sheet-foreground);
+  --color-sheet-border: var(--sheet-border);
+  --color-dropdown: var(--dropdown);
+  --color-dropdown-foreground: var(--dropdown-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+
+  /* Fonts für Montserrat/Open Sans */
+  --font-sans: "Montserrat", "Open Sans", -apple-system, sans-serif;
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+}
+
+@layer base {
+  /* Clean Reset */
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    max-width: 100vw;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+    font-size: 16px; /* E-Commerce Standard */
+  }
+
+  /* Typografie optimiert für Montserrat */
+  h1 {
+    font-weight: 700; /* Montserrat Bold */
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    margin: 0 0 1.5rem 0;
+  }
+
+  h2 {
+    font-weight: 600;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.2;
+  }
+  h3 {
+    font-weight: 500;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    line-height: 1.3;
+  }
+
+  p,
+  li {
+    font-weight: 400; /* Open Sans Regular */
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+
+  /* Buttons flexibel (kein width: 100%) */
+  button {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  /* Utility Classes */
+  .underlined {
+    position: relative;
+  }
+  .underlined::after {
+    content: "";
+    height: 2px;
+    width: 0;
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    background: var(--primary);
+    transition: width 0.3s ease;
+  }
+  .underlined:hover::after {
+    width: 100%;
+  }
+
+  .icon {
+    width: clamp(2.5rem, 4vw, 3rem);
+    height: clamp(2.5rem, 4vw, 3rem);
+    background: var(--primary);
+    color: white;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+  }
+}

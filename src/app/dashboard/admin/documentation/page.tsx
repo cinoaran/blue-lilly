@@ -124,6 +124,21 @@ await updateOwnProfile(...)`}</pre>
           </li>
         </ul>
       </section>
+      <section>
+        <h2 className="text-lg font-semibold">DB Queries</h2>
+        <code className="bg-black p-3 rounded overflow-auto">{`
+        # Backup (Postgres)
+            pg_dump $DATABASE_URL > backup_$(date +%F).sql
+
+        # Prisma: client generieren
+            npx prisma generate
+
+        # Prisma: Migration erstellen und anwenden (lokal/dev)
+            npx prisma migrate dev --name add-category-constraints
+
+        # Optional: nur SQL generieren (ohne anwenden)
+            npx prisma migrate dev --create-only --name add-category-constraints`}</code>
+      </section>
     </div>
   );
 }

@@ -1,0 +1,68 @@
+{
+  "clothes": [
+    {
+      "id": "11111",
+      "label": "EU 34 / US 4 / XS",
+      "value": "34",
+      "eu": "34",
+      "us": "4",
+      "international": "XS"
+    },
+    {
+      "id": "222222",
+      "label": "EU 36 / US 6 / S",
+      "value": "36",
+      "eu": "36",
+      "us": "6",
+      "international": "S"
+    },
+    {
+      "id": "333333",
+      "label": "EU 38 / US 8 / S",
+      "value": "38",
+      "eu": "38",
+      "us": "8",
+      "international": "S"
+    },
+    {
+      "id": "444444",
+      "label": "EU 40 / US 10 / M",
+      "value": "40",
+      "eu": "40",
+      "us": "10",
+      "international": "M"
+    },
+    {
+      "id": "555555",
+      "label": "EU 42 / US 12 / M",
+      "value": "42",
+      "eu": "42",
+      "us": "12",
+      "international": "M"
+    },
+    {
+      "id": "666666",
+      "label": "EU 44 / US 14 / L",
+      "value": "44",
+      "eu": "44",
+      "us": "14",
+      "international": "L"
+    },
+    {
+      "id": "777777",
+      "label": "EU 46 / US 16 / XL",
+      "value": "46",
+      "eu": "46",
+      "us": "16",
+      "international": "XL"
+    },
+    {
+      "id": "888888",
+      "label": "EU 48 / US 18 / XXL",
+      "value": "48",
+      "eu": "48",
+      "us": "18",
+      "international": "XXL"
+    }
+  ]
+}

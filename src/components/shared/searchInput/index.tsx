@@ -5,10 +5,11 @@ import {Input} from "@/components/ui/input";
 import {Search} from "lucide-react";
 import {useSearchParams} from "next/navigation";
 import {useRouter} from "next/navigation";
+import {Button} from "@/components/ui/button";
 
 const SearchInput = () => {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("query") || "";
+  const initialQuery = searchParams.get("query") ?? "";
   const [query, setQuery] = useState(initialQuery);
 
   const router = useRouter();
@@ -37,16 +38,16 @@ const SearchInput = () => {
       <Input
         type="search"
         placeholder="Search..."
-        className="bg-foreground placeholder:italic placeholder:text-foreground/50 webkit-search-cancel-button:appearance-none border-border pr-10"
+        className="border-[0.3px] ring-1 ring-inset ring-primary placeholder:italic placeholder:text-foreground/50 webkit-search-cancel-button:appearance-none border-border pr-10 overflow-hidden"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <button
+      <Button
         type="submit"
-        className="flex items-center justify-center absolute top-1/2 right-0 -translate-y-1/2 w-12 h-14 bg-transparent hover:scale-110 transition-transform"
+        className="flex items-center justify-center rounded-tl-none rounded-bl-none rounded-bl-0 rounded-br-0 rounded-tr-0 absolute top-1/2 right-0 -translate-y-1/2 w-12 h-8.5 hover:scale-110 transition-transform"
       >
-        <Search size={14} />
-      </button>
+        <Search size={22} className="text-white" />
+      </Button>
     </form>
   );
 };

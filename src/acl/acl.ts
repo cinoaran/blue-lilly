@@ -1,4 +1,3 @@
-import {headers as nextHeaders} from "next/headers";
 import {getSessionOnce} from "@/lib/sessionCache";
 import {roleHasPermission} from "./policies";
 
@@ -10,13 +9,16 @@ export type Session = AuthSession | null;
 export async function ensureSession(
   opts: Parameters<typeof getSessionOnce>[0] = {},
 ): Promise<Session> {
-  // If no headers provided and we are in a Next server component context, try next/headers()
-  if (!opts.headers && typeof nextHeaders === "function") {
+  // If no headers provided and we are running on the server, try to load next/headers dynamically
+  if (!opts.headers && typeof window === "undefined") {
     try {
-      // don't await here; nextHeaders is a function returning Headers
-      opts.headers = nextHeaders();
+      const mod = await import("next/headers");
+      const dynamicHeaders = mod?.headers;
+      if (typeof dynamicHeaders === "function") {
+        opts.headers = await dynamicHeaders();
+      }
     } catch {
-      // ignore
+      // ignore: dynamic import may fail in environments where next/headers isn't available
     }
   }
 

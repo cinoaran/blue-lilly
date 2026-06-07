@@ -1,0 +1,29 @@
+{
+  "sizes": [
+    {
+      "id": "international",
+      "name": "International",
+      "value": ["eu", "us", "uk"]
+    },
+    {
+      "id": "length",
+      "name": "Length",
+      "value": ["cm", "m", "mm"]
+    },
+    {
+      "id": "weight",
+      "name": "Weight",
+      "value": ["kg", "g", "mg"]
+    },
+    {
+      "id": "volume",
+      "name": "Volume",
+      "value": ["l", "ml"]
+    },
+    {
+      "id": "count",
+      "name": "Count",
+      "value": ["pcs", "Stk."]
+    }
+  ]
+}

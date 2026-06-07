@@ -21,7 +21,7 @@ const Header = async () => {
     : null;
 
   return (
-    <header className="relative md:sticky top-0 mx-auto space-y-6 pb-5 md:space-y-0 px-8 border-b-[0.3px] border-b-foreground/10 backdrop-blur-lg z-50">
+    <header className="relative md:sticky top-0 mx-auto space-y-6 pb-5 md:space-y-0 px-8 border-b-[0.3px] border-b-foreground/10 backdrop-blur-lg z-10">
       <nav className="flex flex-col md:flex-row items-center justify-center md:justify-between md:gap-1 gap-1 h-auto">
         <Link
           href="/"
