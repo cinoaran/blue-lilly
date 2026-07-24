@@ -9,6 +9,7 @@ export async function getAllMerchants(
   try {
     await ensureAndRequire(opts, "admin:read");
   } catch (err) {
+    console.error("getAllMerchants: permission check failed", err);
     return null;
   }
 

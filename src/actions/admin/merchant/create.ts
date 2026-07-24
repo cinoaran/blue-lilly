@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import {requireServerPermission} from "@/acl/server";
 
 export type CreateMerchantInput = {
   name: string;
@@ -17,6 +18,7 @@ export type CreateMerchantInput = {
 };
 
 export async function createMerchant(data: CreateMerchantInput) {
+  await requireServerPermission("merchant:manage");
   const partnersToCreate = (data.partners || [])
     .filter((p) => p && p.name && p.name.trim().length > 0)
     .map((p) => ({

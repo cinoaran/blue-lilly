@@ -3,34 +3,46 @@ import {Skeleton} from "@/components/ui/skeleton";
 
 export function ProductsCardSkeleton() {
   return (
-    <Card className="flex flex-col rounded-md bg-accent/30 animate-pulse">
-      <CardContent>
-        <div className="aspect-7/8 w-full overflow-hidden rounded-md">
-          <div className="relative h-[40vh] w-full  bg-accent/50">
-            <Skeleton className="bg-red-500" />
-            <div className="absolute bottom-4 right-4 flex items-center h-12 w-42 bg-black/30">
-              <Skeleton className="bg-accent/50 w-20 h-10 px-4 py-2" />
-              <Skeleton className="bg-accent/50 w-20 h-10 px-4 py-2" />
-            </div>{" "}
+    <Card className="flex flex-col items-start rounded-md shadow-md gap-4">
+      <CardContent className="w-full flex-1">
+        {/* Image area: same aspect ratio as ProductCard */}
+        <div className="relative aspect-7/8 w-full overflow-hidden rounded-md bg-accent/50">
+          <Skeleton className="w-full h-full animate-pulse" />
+
+          {/* price/label area */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-0 overflow-hidden rounded-md bg-primary/40 p-1">
+            <Skeleton className="w-16 h-7 animate-pulse" />
+            <Skeleton className="w-16 h-7 animate-pulse" />
           </div>
         </div>
 
-        <div className="mt-2 flex flex-col gap-2 p-4">
-          <Skeleton className="bg-accent/50 h-10 w-32" />
-          <Skeleton className="bg-accent/50 h-5" />
-          <Skeleton className="bg-accent/50 h-5" />
-        </div>
-
-        <div className="flex items-end justify-between relative h-10">
-          <Skeleton className="bg-accent/50 w-14 h-5 mx-4 my-3" />
-          <div className="absolute right-12 flex items-center justify-between gap-2">
-            <Skeleton className="top-3.5 bg-accent/50 rounded-full size-6" />
-            <Skeleton className="top-3.5 bg-accent/50 rounded-full size-6" />
+        {/* Name & short desc */}
+        <div className="mt-2 w-full flex-1">
+          <div className="min-h-16 flex items-start">
+            <Skeleton className="h-10 w-full animate-pulse" />
+          </div>
+          <div className="m-1 overflow-hidden h-16">
+            <Skeleton className="h-8 w-full mt-2 animate-pulse" />
+            <Skeleton className="h-8 w-full mt-2 animate-pulse" />
           </div>
         </div>
-        <div className="flex items-start gap-2 px-4 py-2">
-          <Skeleton className="bg-accent/50 h-14 w-12" />
-          <Skeleton className="bg-accent/50 h-14 w-12" />
+
+        {/* Footer: size pills and thumbnails placeholder */}
+        <div className="flex flex-col gap-3 my-4">
+          <div className="flex items-start flex-wrap gap-2">
+            <Skeleton className="h-8 w-18 rounded-md animate-pulse" />
+            <Skeleton className="h-8 w-18 rounded-md animate-pulse" />
+            <Skeleton className="h-8 w-18 rounded-md animate-pulse" />
+          </div>
+
+          <div className="mt-2 grid grid-cols-5 min-w-full gap-2">
+            {Array.from({length: 5}).map((_, i) => (
+              <Skeleton
+                key={i}
+                className="w-full aspect-7/8 rounded-md animate-pulse"
+              />
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>

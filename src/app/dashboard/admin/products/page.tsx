@@ -1,9 +1,21 @@
 import React from "react";
+import {headers} from "next/headers";
+import {redirect} from "next/navigation";
 import {DataTable} from "@/app/dashboard/_components/DataTable";
 import {columns} from "./_components/Columns";
 import prisma from "@/lib/prisma";
+import {ensureAndRequire} from "@/acl/acl";
+import Link from "next/link";
+import {Button} from "@/components/ui/button";
 
 const ProductsPage = async () => {
+  const hdrs = await headers();
+  try {
+    await ensureAndRequire({headers: hdrs}, "admin:access");
+  } catch {
+    // Not authorized -> redirect to home
+    redirect("/");
+  }
   const products = await prisma.product.findMany({
     select: {
       id: true,
@@ -89,7 +101,28 @@ const ProductsPage = async () => {
 
   return (
     <div className="container bg-secondary text-foreground border-[0.3px] border-foreground/10 rounded-lg backdrop-blur-md shadow-md shadow-foreground/10 mx-auto my-12">
-      <DataTable columns={columns} data={data} />
+      {data.length === 0 ? (
+        <div className="w-full py-12 flex items-center justify-evenly">
+          <div className="text-center bg-secondary/50 border border-foreground/10 rounded-md p-6">
+            <h3 className="text-lg font-medium">
+              Aktuell befinden sich keine Produkte zur Auswahl
+            </h3>
+            <p className="text-sm text-foreground/60 mt-2">
+              Lege neue Produkte an, um sie hier anzuzeigen.
+            </p>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-5 mt-6">
+            <span className="text-sm text-foreground/60 mt-1">
+              Add a new product to get started.
+            </span>
+            <Link href="/dashboard/admin/products/add-product">
+              <Button size="sm">Add Product</Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={data} />
+      )}
     </div>
   );
 };

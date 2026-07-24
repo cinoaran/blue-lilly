@@ -22,18 +22,24 @@ export default function mapPrismaProductToFormData(
       id: variant.id ?? "",
       size: variant.size,
       units: variant.units,
-      options: variant.options.map((option: Option) => ({
-        id: option.id ?? "",
-        entryPrice: Number(option.entryPrice),
-        sellPrice: Number(option.sellPrice),
-        taxPercentage: Number(option.taxPercentage),
-        quantity: option.quantity,
-        image: option.image,
-        color: option.color,
-        weight: Number(option.weight),
-        stockLevel: option.stockLevel,
-        sku: option.sku ?? "",
-      })),
+      options: variant.options.map((option: Option) => {
+        const typed = option as Option & {
+          color?: string;
+          displayColor?: string;
+        };
+        return {
+          id: option.id ?? "",
+          entryPrice: Number(option.entryPrice),
+          sellPrice: Number(option.sellPrice),
+          taxPercentage: Number(option.taxPercentage),
+          quantity: option.quantity,
+          image: option.image,
+          baseColor: typed.baseColor ?? "",
+          displayColor: typed.displayColor ?? "",
+          weight: Number(option.weight),
+          sku: option.sku ?? "",
+        };
+      }),
     })),
   };
 }

@@ -11,9 +11,8 @@ import {
 import {CircleMinus, PlusCircle} from "lucide-react";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
-import {useRef, useState, useCallback, useEffect} from "react";
+import {useRef, useState, useCallback, useEffect, useMemo} from "react";
 import Image from "next/image";
-import {useMemo} from "react";
 
 export default function OptionForm({
   form,
@@ -32,10 +31,38 @@ export default function OptionForm({
     name: `variants.${variantIndex}.options.${optionIndex}.image`,
   }) ?? []) as string[];
 
-  const color = (useWatch({
+  // legacy `color` field removed from form; use `baseColor` and `displayColor`
+
+  const baseColor = (useWatch({
     control: form.control,
-    name: `variants.${variantIndex}.options.${optionIndex}.color`,
+    name: `variants.${variantIndex}.options.${optionIndex}.baseColor`,
   }) ?? "") as string;
+
+  const displayColor = (useWatch({
+    control: form.control,
+    name: `variants.${variantIndex}.options.${optionIndex}.displayColor`,
+  }) ?? "") as string;
+
+  // no sync effect: server will map `baseColor`/`displayColor` into legacy `color` as needed
+
+  const BASE_COLORS = useMemo(
+    () => [
+      "RED",
+      "BLUE",
+      "GREEN",
+      "PURPLE",
+      "BLACK",
+      "WHITE",
+      "GREY",
+      "BROWN",
+      "YELLOW",
+      "ORANGE",
+      "PINK",
+      "MULTICOLOR",
+      "OTHER",
+    ],
+    [],
+  );
 
   const sku = (useWatch({
     control: form.control,
@@ -181,7 +208,18 @@ export default function OptionForm({
       if (sku && sku.trim().length > 0) return;
       const productSlug = form.getValues("slug");
       const variantSize = form.getValues(`variants.${variantIndex}.size`);
-      const gen = generateSku(productSlug, variantSize, color, optionIndex);
+      const effectiveColor =
+        displayColor && displayColor.trim().length > 0
+          ? displayColor
+          : baseColor && baseColor.trim().length > 0
+            ? baseColor
+            : undefined;
+      const gen = generateSku(
+        productSlug,
+        variantSize,
+        effectiveColor,
+        optionIndex,
+      );
       if (gen) {
         form.setValue(
           `variants.${variantIndex}.options.${optionIndex}.sku`,
@@ -194,32 +232,70 @@ export default function OptionForm({
       console.warn("SKU generation failed", msg);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, variantIndex, optionIndex, form, skuTouched]);
+  }, [baseColor, displayColor, variantIndex, optionIndex, form, skuTouched]);
 
   return (
     <div className="flex flex-wrap gap-2 mb-2 border rounded p-2">
       <div className="w-full flex flex-col lg:flex-row items-center gap-10">
         <FormField
           control={form.control}
-          name={`variants.${variantIndex}.options.${optionIndex}.color`}
+          name={`variants.${variantIndex}.options.${optionIndex}.baseColor`}
           render={({field}) => (
             <FormItem className="py-3 w-full">
               <FormLabel
                 className={`font-thin text-[0.6rem] md:text-lg ${
                   form.formState.errors.variants?.[variantIndex]?.options?.[
                     optionIndex
-                  ]?.color
+                  ]?.baseColor
                     ? "text-destructive"
                     : "text-foreground"
                 }`}
               >
-                Color
+                Base Color
+              </FormLabel>
+              <FormControl>
+                <select
+                  disabled={form.formState.isSubmitting}
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-3 text-[0.6rem] md:text-lg bg-transparent"
+                >
+                  <option value="">Select color</option>
+                  {BASE_COLORS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Display color (marketing label) — stored to `displayColor` and synced into `color` */}
+        <FormField
+          control={form.control}
+          name={`variants.${variantIndex}.options.${optionIndex}.displayColor`}
+          render={({field}) => (
+            <FormItem className="py-3 w-full">
+              <FormLabel
+                className={`font-thin text-[0.6rem] md:text-lg ${
+                  form.formState.errors.variants?.[variantIndex]?.options?.[
+                    optionIndex
+                  ]?.displayColor
+                    ? "text-destructive"
+                    : "text-foreground"
+                }`}
+              >
+                Display Color (marketing)
               </FormLabel>
               <FormControl>
                 <Input
                   disabled={form.formState.isSubmitting}
                   type="text"
-                  placeholder="Color"
+                  placeholder="e.g. Ladyrose"
                   {...field}
                   value={field.value ?? ""}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -408,40 +484,7 @@ export default function OptionForm({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name={`variants.${variantIndex}.options.${optionIndex}.stockLevel`}
-          render={({field}) => (
-            <FormItem className="py-3 w-full">
-              <FormLabel
-                className={`font-thin text-[0.6rem] md:text-lg ${
-                  form.formState.errors.variants?.[variantIndex]?.options?.[
-                    optionIndex
-                  ]?.stockLevel
-                    ? "text-destructive"
-                    : "text-foreground"
-                }`}
-              >
-                Stock Level
-              </FormLabel>
-              <FormControl>
-                <Input
-                  disabled={form.formState.isSubmitting}
-                  type="number"
-                  placeholder="Stock Level"
-                  {...field}
-                  value={field.value ?? ""}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(",", ".");
-                    field.onChange(value === "" ? undefined : Number(value));
-                  }}
-                  className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* stockLevel removed — field no longer part of the form */}
 
         <FormField
           control={form.control}

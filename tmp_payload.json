@@ -1,0 +1,14 @@
+{
+  "id": "test",
+  "merchantId": "",
+  "name": "",
+  "smallDesc": "",
+  "longDesc": "",
+  "isActive": false,
+  "isFeatured": false,
+  "brand": "",
+  "subcategory": "",
+  "slug": "",
+  "categoryId": "",
+  "variants": []
+}

@@ -64,6 +64,7 @@ export default function VariantForm({
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Enter size (e.g., M, 42, 10cm)"
+                  className="w-full"
                 />
               </FormControl>
               <FormMessage />
@@ -128,9 +129,9 @@ export default function VariantForm({
               taxPercentage: 0,
               quantity: 0,
               image: [],
-              color: "",
+              baseColor: "",
+              displayColor: "",
               weight: 0,
-              stockLevel: 0,
             })
           }
         >

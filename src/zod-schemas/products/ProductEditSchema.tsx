@@ -8,9 +8,9 @@ export const OptionSchema = z.object({
     .number()
     .min(1, {message: "Tax percentage must be at least 1"}),
   image: z.array(z.instanceof(File)).optional(),
-  color: z.string().min(2, {message: "Color must have at least 2 characters"}),
+  baseColor: z.string().optional(),
+  displayColor: z.string().optional(),
   weight: z.number().min(1, {message: "Weight must be at least 1"}),
-  stockLevel: z.number().min(1, {message: "Stock level must be at least 1"}),
   // weitere optionale Felder...
 });
 
@@ -60,7 +60,8 @@ export const ProductSchema = z.object({
           z
             .object({
               id: z.string().optional(),
-              color: z.string().min(1, "Color is required"),
+              baseColor: z.string().optional(),
+              displayColor: z.string().optional(),
               sellPrice: z.number().min(0, "Sell price required"),
               entryPrice: z.number().min(0, "Entry price required"),
               taxPercentage: z.number().min(0, "Tax percentage required"),
@@ -69,8 +70,26 @@ export const ProductSchema = z.object({
                 .array(z.union([z.string(), z.instanceof(File)]))
                 .min(1, {message: "At least one image is required"}), // File[] und string[]
               weight: z.number().min(0, "Weight required"),
-              stockLevel: z.number().min(0).optional(),
             })
+            .refine(
+              (data) => {
+                const typed = data as {
+                  baseColor?: string;
+                  displayColor?: string;
+                };
+                const hasBase =
+                  typeof typed.baseColor === "string" &&
+                  typed.baseColor.trim().length > 0;
+                const hasDisplay =
+                  typeof typed.displayColor === "string" &&
+                  typed.displayColor.trim().length > 0;
+                return hasBase || hasDisplay;
+              },
+              {
+                message: "Either baseColor or displayColor is required",
+                path: ["baseColor", "displayColor"],
+              },
+            )
             .refine((data) => data.sellPrice > data.entryPrice, {
               message: "Sell price must be greater than entry price",
               path: ["sellPrice"],
@@ -108,7 +127,6 @@ http://localhost:3000/uploadthings/products/cmf21avfw0000i0oo6mnw9i7y/new-balanc
           image: ['https://utfs.io/f/G7eb7qdCR5PMoJTVKcRLrJduA1GtmovVzlUkP749e6c0XZCa', 'https://utfs.io/f/G7eb7qdCR5PMFgJJYl9Z8UaTjM269to04hONGXWuHswcxKld', 'https://utfs.io/f/G7eb7qdCR5PMasHevBOqrVJZlgfpN0W5cMFULbHTzawkCoOs'],
             quantity: 100,
           sellPrice: 149.99,
-          stockLevel: 50,
           sku: "newbalance-u440v2-red-46",
           taxPercentage: 19,
           weight: 800,
@@ -118,7 +136,6 @@ http://localhost:3000/uploadthings/products/cmf21avfw0000i0oo6mnw9i7y/new-balanc
           image: ['https://utfs.io/f/G7eb7qdCR5PMoJTVKcRLrJduA1GtmovVzlUkP749e6c0XZCa', 'https://utfs.io/f/G7eb7qdCR5PMFgJJYl9Z8UaTjM269to04hONGXWuHswcxKld', 'https://utfs.io/f/G7eb7qdCR5PMasHevBOqrVJZlgfpN0W5cMFULbHTzawkCoOs'], ],
           quantity: 5,
           sellPrice: 749.99,
-          stockLevel: 9,
           sku: "newbalance-u440v2-orange-46",
           taxPercentage: 19,
           weight: 20,
@@ -135,7 +152,6 @@ http://localhost:3000/uploadthings/products/cmf21avfw0000i0oo6mnw9i7y/new-balanc
           image: ['https://utfs.io/f/G7eb7qdCR5PMoJTVKcRLrJduA1GtmovVzlUkP749e6c0XZCa', 'https://utfs.io/f/G7eb7qdCR5PMFgJJYl9Z8UaTjM269to04hONGXWuHswcxKld', 'https://utfs.io/f/G7eb7qdCR5PMasHevBOqrVJZlgfpN0W5cMFULbHTzawkCoOs'],
           quantity: 22,
           sellPrice: 59.99,
-          stockLevel: 10,
           sku: "newbalance-u440v2-red-42",
           taxPercentage: 19,
           weight: 10,

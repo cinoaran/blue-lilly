@@ -18,8 +18,10 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
   SelectTrigger,
   SelectValue,
+  SelectLabel,
 } from "@/components/ui/select";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -36,7 +38,12 @@ import ProductDescriptionEditor from "@/components/TipTap/ProductDescriptionEdit
 type Mode = "add" | "edit";
 
 interface ProductFormProps {
-  categories: {id: string; name: string; sizes?: string[]}[]; // ← sizes!
+  categories: {
+    id: string;
+    name: string;
+    sizes?: string[];
+    parentId?: string | null;
+  }[]; // ← sizes!
   merchants: Merchant[];
   product?: ProductFormData;
   mode: Mode;
@@ -53,6 +60,8 @@ export default function ProductForm({
   const [isPending, setIsPending] = useState<boolean>(false);
 
   const slugManuallyEdited = useRef(false);
+  const fieldClass =
+    "w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-3 text-[0.6rem] md:text-lg bg-transparent";
 
   // Helper: Prisma → FormData (Decimals fixen)
   const mapPrismaToFormData = (
@@ -94,14 +103,14 @@ export default function ProductForm({
             options: [
               {
                 id: crypto.randomUUID(),
-                color: "",
+                baseColor: "",
+                displayColor: "",
                 sellPrice: 0,
                 entryPrice: 0,
                 taxPercentage: 0,
                 quantity: 0,
                 image: [],
                 weight: 0,
-                stockLevel: 0,
                 sku: "",
               },
             ],
@@ -301,7 +310,7 @@ export default function ProductForm({
                           field.onChange(value === "true")
                         }
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className={fieldClass}>
                           <SelectValue
                             placeholder="Is Featured"
                             defaultValue={field.value ? "true" : "false"}
@@ -342,7 +351,7 @@ export default function ProductForm({
                           field.onChange(value === "true")
                         }
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className={fieldClass}>
                           <SelectValue
                             placeholder="Is Active"
                             defaultValue={field.value ? "true" : "false"}
@@ -381,7 +390,7 @@ export default function ProductForm({
                         value={field.value}
                         onValueChange={(value) => field.onChange(value)}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className={fieldClass}>
                           <SelectValue
                             placeholder="Merchant"
                             defaultValue={field.value}
@@ -417,20 +426,72 @@ export default function ProductForm({
                         value={field.value}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className={fieldClass}>
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                              {category.sizes?.length && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  ({category.sizes.length} Größen)
-                                </span>
-                              )}
-                            </SelectItem>
-                          ))}
+                          {
+                            // Build parent -> children groups
+                            (() => {
+                              const map = new Map<
+                                string,
+                                (typeof categories)[0]
+                              >();
+                              categories.forEach((c) => map.set(c.id, c));
+
+                              const roots = categories.filter(
+                                (c) => !c.parentId,
+                              );
+
+                              return (
+                                <>
+                                  {roots.map((parent) => {
+                                    const children = categories.filter(
+                                      (c) => c.parentId === parent.id,
+                                    );
+
+                                    if (children.length > 0) {
+                                      return (
+                                        <SelectGroup key={parent.id}>
+                                          <SelectLabel>
+                                            {parent.name}
+                                          </SelectLabel>
+                                          {children.map((child) => (
+                                            <SelectItem
+                                              key={child.id}
+                                              value={child.id}
+                                            >
+                                              {`${parent.name} › ${child.name}`}
+                                              {child.sizes?.length && (
+                                                <span className="ml-2 text-xs text-muted-foreground">
+                                                  ({child.sizes.length} Größen)
+                                                </span>
+                                              )}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      );
+                                    }
+
+                                    // no children -> render parent as selectable
+                                    return (
+                                      <SelectItem
+                                        key={parent.id}
+                                        value={parent.id}
+                                      >
+                                        {parent.name}
+                                        {parent.sizes?.length && (
+                                          <span className="ml-2 text-xs text-muted-foreground">
+                                            ({parent.sizes.length} Größen)
+                                          </span>
+                                        )}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
+                          }
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -462,7 +523,7 @@ export default function ProductForm({
                       type="text"
                       placeholder="Brand"
                       {...field}
-                      className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                      className={fieldClass}
                     />
                   </FormControl>
                   <FormMessage />
@@ -499,7 +560,7 @@ export default function ProductForm({
                       }}
                       value={field.value}
                       placeholder="Product name"
-                      className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                      className={fieldClass}
                     />
                   </FormControl>
                   <FormMessage />
@@ -528,7 +589,7 @@ export default function ProductForm({
                       onChange={handleSlugChange}
                       value={field.value}
                       placeholder="Slug"
-                      className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                      className={fieldClass}
                     />
                   </FormControl>
                   <FormMessage />
@@ -557,7 +618,7 @@ export default function ProductForm({
                       type="text"
                       placeholder="Subcategory"
                       {...field}
-                      className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                      className={fieldClass}
                     />
                   </FormControl>
                   <FormMessage />
@@ -586,41 +647,13 @@ export default function ProductForm({
                     name="smallDesc"
                     placeholder="Small Description"
                     {...field}
-                    className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-sm md:text-lg"
+                    className={fieldClass}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          {/* LONG Description 
-          <FormField
-            control={form.control}
-            name="longDesc"
-            render={({field}: {field: FieldValues}) => (
-              <FormItem className="py-3 w-full">
-                <FormLabel
-                  className={`h-5 font-thin text-sm md:text-lg ${
-                    form.formState.errors.longDesc
-                      ? "text-destructive"
-                      : "text-foreground"
-                  }`}
-                >
-                  Long Description
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    disabled={isPending}
-                    name="longDesc"
-                    placeholder="Long Description"
-                    {...field}
-                    className="w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-sm md:text-lg"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />*/}
           <FormField
             control={form.control}
             name="longDesc"
@@ -654,9 +687,9 @@ export default function ProductForm({
                     taxPercentage: 0,
                     quantity: 0,
                     image: [],
-                    color: "",
+                    baseColor: "",
+                    displayColor: "",
                     weight: 0,
-                    stockLevel: 0,
                     sku: "",
                   },
                 ],
@@ -691,16 +724,6 @@ export default function ProductForm({
             {form.formState.isSubmitting && <Spinner />}
           </Button>
           {error && <FormError message={error} />}
-          {/* {debugResult && (
-            <details className="mt-2 text-xs text-muted-foreground">
-              <summary className="cursor-pointer">
-                Server details (debug)
-              </summary>
-              <pre className="whitespace-pre-wrap p-2 bg-muted/10 rounded mt-2">
-                {JSON.stringify(debugResult, null, 2)}
-              </pre>
-            </details>
-          )} */}
           {success && <FormSuccess message={success} />}
         </form>
       </Form>

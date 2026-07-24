@@ -1,5 +1,6 @@
 "use server";
 import prisma from "@/lib/prisma";
+import {requireServerPermission} from "@/acl/server";
 import {ProductSchema} from "@/zod-schemas/products/ProductShema";
 import {ProductFormData} from "@/types/product/productFormData";
 import {
@@ -10,6 +11,7 @@ import {
 import {utapi} from "@/uploadthing/server";
 import {Variant} from "@/types/product/variants";
 import {Option} from "@/types/product/options";
+import {BaseColor} from "@/generated/prisma/enums";
 import {revalidatePath} from "next/cache";
 import {UTApi} from "uploadthing/server";
 import {Prisma} from "@/generated/prisma/browser";
@@ -41,6 +43,7 @@ async function ensureUniqueSku(baseSku: string) {
 }
 
 export async function getProductById(productId: string) {
+  await requireServerPermission("product:update");
   try {
     const product = await prisma.product.findUnique({
       where: {id: productId},
@@ -59,6 +62,7 @@ export async function getProductById(productId: string) {
 
 // Produkt löschen inkl. Medien bei UploadThing
 export async function deleteProduct(productId: string) {
+  await requireServerPermission("product:delete");
   try {
     // Hole Produkt mit Varianten und Optionen
     const product = await prisma.product.findUnique({
@@ -143,13 +147,19 @@ const extractFileKey = (url: string): string => {
 
 const updateProduct = async (data: ProductFormData) => {
   try {
-    if (!data.id) {
-      return {success: false, error: "Product ID erforderlich."};
+    // Validate payload with the same Zod schema as addProduct
+    const result = ProductSchema.safeParse(data);
+    if (!result.success) {
+      return {
+        success: false,
+        error: JSON.stringify(result.error.issues, null, 2),
+      };
     }
+    const validData = result.data;
 
-    // 1. Aktuelles Product laden (für alte Images)
+    // 1. Aktuelles Product laden (für alteImages)
     const currentProduct = (await prisma.product.findUnique({
-      where: {id: data.id},
+      where: {id: validData.id},
       include: {
         variants: {
           include: {options: true},
@@ -168,7 +178,7 @@ const updateProduct = async (data: ProductFormData) => {
           option.image.forEach((oldImgUrl) => {
             // Wenn alte URL nicht mehr in neuen Daten → löschen
             // In updateProduct: Vergleiche per URL-Hash, nicht ID
-            const stillExists = data.variants?.some((newV) =>
+            const stillExists = validData.variants?.some((newV) =>
               newV.options?.some(
                 (newO) => newO.image?.includes(oldImgUrl), // ← URL-basiert!
               ),
@@ -193,23 +203,25 @@ const updateProduct = async (data: ProductFormData) => {
     // 4. Trimmed Product-Daten (wie vorher)
     const trimmedData: Prisma.ProductUncheckedUpdateInput = {
       // Temporär 'any' für Flexibilität
-      name: data.name?.trim() || undefined,
-      smallDesc: data.smallDesc?.trim() || undefined,
-      longDesc: data.longDesc?.trim() || undefined,
-      brand: data.brand?.trim() || undefined,
-      slug: data.slug?.trim() || undefined,
-      categoryId: data.categoryId || undefined,
-      subcategory: data.subcategory ? data.subcategory.trim() : undefined,
-      merchantId: data.merchantId || undefined,
-      isActive: data.isActive ?? undefined,
-      isFeatured: data.isFeatured ?? undefined,
+      name: validData.name?.trim() || undefined,
+      smallDesc: validData.smallDesc?.trim() || undefined,
+      longDesc: validData.longDesc?.trim() || undefined,
+      brand: validData.brand?.trim() || undefined,
+      slug: validData.slug?.trim() || undefined,
+      categoryId: validData.categoryId || undefined,
+      subcategory: validData.subcategory
+        ? validData.subcategory.trim()
+        : undefined,
+      merchantId: validData.merchantId || undefined,
+      isActive: validData.isActive ?? undefined,
+      isFeatured: validData.isFeatured ?? undefined,
       // KEINE variants hier!
     };
 
     // Preflight: collect SKUs from incoming data (generate where missing) and check duplicates
     const incomingSkus: string[] = [];
-    if (data.variants && data.variants.length > 0) {
-      for (const variant of data.variants) {
+    if (validData.variants && validData.variants.length > 0) {
+      for (const variant of validData.variants) {
         for (const option of variant.options ?? []) {
           const optSku =
             (option as Partial<Option>).sku &&
@@ -219,10 +231,13 @@ const updateProduct = async (data: ProductFormData) => {
             optSku && optSku.length > 0
               ? normalizeSku(optSku)
               : await generateSku({
-                  brand: data.brand ?? "",
-                  name: data.name ?? "",
+                  brand: validData.brand ?? "",
+                  name: validData.name ?? "",
                   size: variant.size ?? "",
-                  color: (option as Partial<Option>).color ?? "",
+                  color:
+                    (option as Partial<Option>).displayColor ??
+                    (option as Partial<Option>).baseColor ??
+                    "",
                 });
           const finalSku = await ensureUniqueSku(baseSku);
           if (finalSku) {
@@ -243,34 +258,46 @@ const updateProduct = async (data: ProductFormData) => {
     await prisma.$transaction(async (tx) => {
       // Alte Variants komplett löschen
       await tx.variant.deleteMany({
-        where: {productId: data.id},
+        where: {productId: validData.id},
       });
 
       // Neue Variants + Options erstellen (wie bei addProduct)
-      if (data.variants && data.variants.length > 0) {
+      if (validData.variants && validData.variants.length > 0) {
         await tx.product.update({
-          where: {id: data.id},
+          where: {id: validData.id},
           data: {
             ...trimmedData,
             variants: {
               create:
-                data.variants.map((variant) => ({
+                validData.variants.map((variant) => ({
                   size: variant.size || "",
                   units: variant.units ?? undefined,
                   options: {
                     create:
-                      variant.options?.map((option) => ({
-                        ...(option.id ? {id: option.id} : {}),
-                        color: option.color ?? "",
-                        entryPrice: option.entryPrice ?? 0,
-                        sellPrice: option.sellPrice ?? 0,
-                        taxPercentage: option.taxPercentage ?? 0,
-                        quantity: option.quantity ?? 0,
-                        image: Array.isArray(option.image) ? option.image : [],
-                        weight: option.weight ?? 0,
-                        stockLevel: option.stockLevel ?? 0,
-                        sku: option.sku ?? "",
-                      })) ?? [],
+                      variant.options?.map((option) => {
+                        const baseColorValue =
+                          option.baseColor &&
+                          (Object.values(BaseColor) as string[]).includes(
+                            option.baseColor,
+                          )
+                            ? (option.baseColor as unknown as (typeof BaseColor)[keyof typeof BaseColor])
+                            : undefined;
+
+                        return {
+                          ...(option.id ? {id: option.id} : {}),
+                          baseColor: baseColorValue,
+                          displayColor: option.displayColor ?? undefined,
+                          entryPrice: option.entryPrice ?? 0,
+                          sellPrice: option.sellPrice ?? 0,
+                          taxPercentage: option.taxPercentage ?? 0,
+                          quantity: option.quantity ?? 0,
+                          image: Array.isArray(option.image)
+                            ? option.image
+                            : [],
+                          weight: option.weight ?? 0,
+                          sku: (option as Partial<Option>).sku ?? "",
+                        };
+                      }) ?? [],
                   },
                 })) || [],
             },
@@ -279,7 +306,7 @@ const updateProduct = async (data: ProductFormData) => {
       } else {
         // Ohne Variants nur Product updaten
         await tx.product.update({
-          where: {id: data.id},
+          where: {id: validData.id},
           data: trimmedData,
         });
       }
@@ -289,7 +316,7 @@ const updateProduct = async (data: ProductFormData) => {
 
     // fetch updated product to return to client (so UI can display generated SKUs)
     const updated = await prisma.product.findUnique({
-      where: {id: data.id},
+      where: {id: validData.id},
       include: {variants: {include: {options: true}}},
     });
 
@@ -345,26 +372,16 @@ const addProduct = async (data: ProductInputWithSku) => {
     }
 
     const enrichedVariants = await Promise.all(
-      validData.variants.map(async (variant) => ({
-        id: variant.id ?? "",
-        size: variant.size ?? "",
-        units: variant.units ?? undefined,
-        options: await Promise.all(
-          (variant.options ?? []).map(async (option) => ({
-            id: option.id ?? "",
-            color: option.color ?? "",
-            sellPrice: option.sellPrice ?? 0,
-            entryPrice: option.entryPrice ?? 0,
-            taxPercentage: option.taxPercentage ?? 0,
-            quantity: option.quantity ?? 0,
-            image: Array.isArray(option.image)
-              ? option.image.filter((img) => typeof img === "string")
-              : [],
-            weight: option.weight ?? 0,
-            stockLevel: option.stockLevel ?? 0,
-            // If frontend provided a SKU normalize it, otherwise generate base
-            // Then ensure uniqueness by appending random suffix + '//' if needed
-            sku: await (async () => {
+      validData.variants.map(async (variant) => {
+        const options = await Promise.all(
+          (variant.options ?? []).map(async (option) => {
+            const baseColorValue =
+              option.baseColor &&
+              (Object.values(BaseColor) as string[]).includes(option.baseColor)
+                ? (option.baseColor as unknown as (typeof BaseColor)[keyof typeof BaseColor])
+                : undefined;
+
+            const sku = await (async () => {
               const provided = (option as Partial<Option>).sku;
               const base =
                 provided && String(provided).trim().length > 0
@@ -373,13 +390,35 @@ const addProduct = async (data: ProductInputWithSku) => {
                       brand: validData.brand!,
                       name: validData.name!,
                       size: variant.size ?? "",
-                      color: option.color ?? "",
+                      color: option.displayColor ?? option.baseColor ?? "",
                     });
               return await ensureUniqueSku(base);
-            })(),
-          })),
-        ),
-      })),
+            })();
+
+            return {
+              id: option.id ?? "",
+              baseColor: baseColorValue,
+              displayColor: option.displayColor ?? undefined,
+              sellPrice: option.sellPrice ?? 0,
+              entryPrice: option.entryPrice ?? 0,
+              taxPercentage: option.taxPercentage ?? 0,
+              quantity: option.quantity ?? 0,
+              image: Array.isArray(option.image)
+                ? option.image.filter((img) => typeof img === "string")
+                : [],
+              weight: option.weight ?? 0,
+              sku,
+            };
+          }),
+        );
+
+        return {
+          id: variant.id ?? "",
+          size: variant.size ?? "",
+          units: variant.units ?? undefined,
+          options,
+        };
+      }),
     );
 
     // SKUs have been ensured unique by ensureUniqueSku
@@ -416,9 +455,15 @@ const addProduct = async (data: ProductInputWithSku) => {
                   : optData.image
                     ? [optData.image]
                     : [],
-                color: optData.color ?? "",
+                baseColor:
+                  optData.baseColor &&
+                  (Object.values(BaseColor) as string[]).includes(
+                    optData.baseColor,
+                  )
+                    ? (optData.baseColor as unknown as (typeof BaseColor)[keyof typeof BaseColor])
+                    : undefined,
+                displayColor: optData.displayColor ?? undefined,
                 weight: optData.weight ?? 0,
-                stockLevel: optData.stockLevel ?? 0,
                 sku: optData.sku ?? "",
               })),
             },
@@ -461,12 +506,14 @@ export async function upsertProduct(
   mode: "add" | "edit",
 ) {
   if (mode === "add") {
+    await requireServerPermission("product:create");
     const result = await addProduct(data);
     if (result.success) {
       revalidatePath("/admin/products");
     }
     return result;
   } else if (mode === "edit") {
+    await requireServerPermission("product:update");
     const result = await updateProduct(data);
     if (result.success) {
       revalidatePath("/admin/products");
@@ -481,6 +528,7 @@ export async function upsertProduct(
 }
 
 export async function getAllProducts() {
+  await requireServerPermission("product:update");
   try {
     const products = await prisma.product.findMany({
       include: {

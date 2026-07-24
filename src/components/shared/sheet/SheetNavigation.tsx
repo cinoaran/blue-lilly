@@ -24,7 +24,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
   const userLoggedIn = user && user.name !== undefined;
 
   return (
-    <Sheet modal={true} /*open={true}  */>
+    <Sheet modal={true} /*open={true}*/ data-slot="sheet-navigation">
       <SheetTrigger asChild aria-description="Navigation Trigger">
         <div
           className="flex items-center justify-center icon ring-1 transition-colors duration-200 ease-in-out cursor-pointer z-10"
@@ -61,7 +61,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
       <SheetContent
         aria-description="Navigation Slider"
         side="right"
-        className="bg-sheet/80 backdrop-blur-xl border-sheet-border/30 shadow-md max-h-screen overflow-y-auto text-sheet-foreground"
+        className="bg-sheet backdrop-blur-xl border-sheet-border/30 shadow-md max-h-screen overflow-y-auto text-sheet-foreground"
       >
         <SheetHeader className="flex flex-col items-center justify-center gap-3 my-5 border-b border-sheet-foreground/30">
           <SheetTitle
@@ -97,18 +97,18 @@ export function SheetNavigation({session}: {session: Session | null}) {
                     >
                       <Link
                         href={`/dashboard`}
-                        className="flex items-center justify-start gap-1 w-fit h-9 underlined uppercase"
+                        className="flex items-center justify-start gap-1 w-fit h-8 underlined uppercase"
                       >
                         <LayoutDashboardIcon
-                          className="size-[0.9rem]"
+                          className="size-[0.8rem]"
                           strokeWidth={pathname === `/dashboard` ? 3 : 2}
                         />
-                        Dashboard
+                        <span className="text-md font-normal">Dashboard</span>
                       </Link>
                     </li>
 
                     <li
-                      className={`flex items-start justify-center gap-1 ${
+                      className={`flex items-start justify-center  gap-1 ${
                         pathname === `/profile` ||
                         pathname?.endsWith(`/profile`) ||
                         pathname === `/${user.role}/profile`
@@ -118,10 +118,10 @@ export function SheetNavigation({session}: {session: Session | null}) {
                     >
                       <Link
                         href={`/profile`}
-                        className="flex items-center justify-start gap-1 w-fit h-9 underlined uppercase"
+                        className="flex items-center justify-start gap-1 w-fit h-8 underlined uppercase"
                       >
                         <UserPlus
-                          className="size-[0.9rem]"
+                          className="size-[0.8rem]"
                           strokeWidth={
                             pathname === `/profile` ||
                             pathname?.endsWith(`/profile`)
@@ -129,7 +129,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
                               : 2
                           }
                         />
-                        Profile
+                        <span className="text-md font-normal">Profile</span>
                       </Link>
                     </li>
                   </ul>
@@ -163,7 +163,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
                       className="size-[0.9rem]"
                       strokeWidth={pathname === "/login" ? 3 : 2}
                     />
-                    Login
+                    <span className="text-md font-normal">Login</span>
                   </Link>
                 </li>
                 <li
@@ -181,7 +181,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
                       className="size-[0.9rem]"
                       strokeWidth={pathname === "/register" ? 3 : 2}
                     />
-                    Register
+                    <span className="text-md font-normal">Register</span>
                   </Link>
                 </li>
               </ul>

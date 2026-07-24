@@ -128,12 +128,16 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
           {imageUrl ? (
             <p className="flex items-center justify-center gap-1">
               <RefreshCcw size={10} />
-              <span className="text-[0.9rem] hidden sm:block">Update</span>
+              <span className="font-normal text-md hidden sm:block">
+                Update
+              </span>
             </p>
           ) : (
             <p className="flex items-center justify-center gap-1">
               <CloudUpload size={16} />
-              <span className="text-[0.9rem] hidden sm:block">Upload</span>
+              <span className="font-normal text-md hidden sm:block">
+                Upload
+              </span>
             </p>
           )}
         </Button>
@@ -150,7 +154,9 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
             ) : (
               <p className="flex items-center justify-center gap-1">
                 <X size={16} />
-                <span className="text-[0.97rem] hidden sm:block">Delete</span>
+                <span className="font-normal text-md hidden sm:block">
+                  Delete
+                </span>
               </p>
             )}
           </Button>

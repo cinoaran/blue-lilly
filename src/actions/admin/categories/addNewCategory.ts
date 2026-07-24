@@ -1,5 +1,6 @@
 import {ensureAndRequire} from "@/acl/acl";
 import prisma from "@/lib/prisma";
+import {revalidatePath} from "next/cache";
 
 function slugify(input: string) {
   return input
@@ -13,6 +14,7 @@ function slugify(input: string) {
 export async function addNewCategory(
   name: string,
   slug?: string,
+  parentId?: string,
   opts: Parameters<typeof ensureAndRequire>[0] = {},
 ) {
   try {
@@ -23,15 +25,56 @@ export async function addNewCategory(
   }
 
   // ensure slug is always a string (Prisma types require `slug: string`)
-  const finalSlug =
-    slug && slug.trim().length > 0 ? slug.trim() : slugify(name);
+  const baseSlug = slug && slug.trim().length > 0 ? slug.trim() : slugify(name);
+
+  // Defensive normalization: if someone passed a path-like slug (e.g. "pflege/creme"),
+  // only keep the last segment so DB slugs remain flat.
+  const sanitizedBase = String(baseSlug).split("/").filter(Boolean).pop() || "";
+
+  // Generate an available slug within the chosen parent scope. This avoids unique
+  // constraint errors by suffixing `-2`, `-3`, ... when necessary.
+  async function generateAvailableSlug(
+    parent: string | null,
+    candidate: string,
+  ) {
+    const normalized = candidate.toLowerCase();
+    // Check if exact exists
+    const exists = await prisma.category.findFirst({
+      where: {parentId: parent, slug: normalized},
+      select: {id: true},
+    });
+    if (!exists) return normalized;
+
+    // find existing siblings with same prefix to pick next suffix
+    const siblings = await prisma.category.findMany({
+      where: {parentId: parent, slug: {startsWith: normalized}},
+      select: {slug: true},
+    });
+
+    const suffixes = new Set<number>();
+    for (const s of siblings) {
+      const m = s.slug.match(new RegExp(`^${normalized}-(\\d+)$`));
+      if (m) suffixes.add(Number(m[1]));
+      else if (s.slug === normalized) suffixes.add(1);
+    }
+
+    let i = 2;
+    while (suffixes.has(i)) i++;
+    return `${normalized}-${i}`;
+  }
+
+  const parentKey = parentId?.trim() || null;
+  const finalSlug = await generateAvailableSlug(parentKey, sanitizedBase);
 
   const category = await prisma.category.create({
     data: {
-      name,
+      name: name.trim(),
       slug: finalSlug,
+      parentId: parentKey,
     },
   });
+
+  revalidatePath("/dashboard/admin/categories");
 
   return category;
 }

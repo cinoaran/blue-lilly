@@ -1,11 +1,11 @@
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
-import ProductsSkeleton from "./skeletons/ProductsSkeleton";
+import ProductsSkeleton from "@/app/skeletons/ProductsSkeleton";
 
 export default function Loading() {
   return (
-    <main className="container mx-auto min-w-3/4 min-h-screen px-5 md:p-0">
+    <main className="container w-[95vw] md:max-w-[80vw] mx-auto px-5 py-5">
       <Breadcrumbs items={[{label: "Home", href: "/"}]} />
-      <ProductsSkeleton />
+      <ProductsSkeleton limit={4} />
     </main>
   );
 }

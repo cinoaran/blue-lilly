@@ -27,6 +27,31 @@ enum MerchantStatus {
   suspended
 }
 
+enum BaseColor {
+  RED
+  BLUE
+  GREEN
+  PURPLE
+  BLACK
+  WHITE
+  GREY
+  BROWN
+  YELLOW
+  ORANGE
+  PINK
+  MULTICOLOR
+  OTHER
+}
+
+enum UnitCategory {
+  INTERNATIONAL
+  LENGTH
+  WEIGHT
+  VOLUME
+  COUNT
+  OTHER
+}
+
 model User {
   id            String    @id @default(cuid()) @map("id")
   name          String
@@ -44,6 +69,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  carts         Cart[]
 
   @@map("user")
 }
@@ -146,10 +172,15 @@ model Product {
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  slug     String    @unique
+  id       String     @id @default(cuid())
+  name     String
+  slug     String
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children Category[] @relation("CategoryTree")
   products Product[]
+
+  @@index([parentId])
 }
 
 model Variant {
@@ -161,21 +192,93 @@ model Variant {
   updatedAt DateTime @updatedAt @db.Timestamp(6)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   options   Option[]
+
+  @@index([productId])
 }
 
 model Option {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   variantId     String
-  color         String
-  entryPrice    Decimal  @default(0) @db.Decimal(6, 2)
-  sellPrice     Decimal  @default(0) @db.Decimal(6, 2)
-  taxPercentage Decimal  @default(0) @db.Decimal(4, 2)
+  baseColor     BaseColor?
+  displayColor  String?
+  unitCategory  UnitCategory?
+  unitValue     String?
+  entryPrice    Decimal       @default(0) @db.Decimal(6, 2)
+  sellPrice     Decimal       @default(0) @db.Decimal(6, 2)
+  taxPercentage Decimal       @default(0) @db.Decimal(4, 2)
   quantity      Int
-  sku           String?  @unique
+  sku           String?       @unique
   image         String[]
-  weight        Decimal  @default(0) @db.Decimal(6, 2)
-  stockLevel    Int
-  createdAt     DateTime @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime @updatedAt @db.Timestamp(6)
-  variant       Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  weight        Decimal       @default(0) @db.Decimal(6, 2)
+  createdAt     DateTime      @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamp(6)
+  variant       Variant       @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  cartItems     CartItem[]
+
+  @@index([variantId, baseColor])
+  @@index([unitCategory, unitValue])
+}
+
+// Carousel model for homepage / marketing slides
+model Carousel {
+  id         String  @id @default(cuid())
+  kicker     String?
+  title      String
+  teaser     String?
+  cta        String?
+  href       String?
+  image      String // stored URL or uploadthing key
+  alt        String?
+  // marketing/tracking fields
+  theme      String? // e.g. "fashion"
+  goal       String? // e.g. "brand-awareness"
+  audience   String? // e.g. "women"
+  angle      String? // e.g. "statement"
+  trackEvent String? // e.g. "carousel_womenRed_click"
+
+  position Int     @default(0) // display order
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, position])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  cartToken String?    @unique
+  status    CartStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt DateTime   @updatedAt @db.Timestamp(6)
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@index([cartToken])
+  @@index([userId])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  optionId  String
+  quantity  Int      @default(1)
+  unitPrice Decimal  @db.Decimal(6, 2)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  option Option @relation(fields: [optionId], references: [id], onDelete: Restrict)
+
+  @@unique([cartId, optionId])
+  @@index([cartId])
+  @@index([optionId])
+}
+
+enum CartStatus {
+  ACTIVE
+  ORDERED
+  ABANDONED
 }

@@ -19,15 +19,36 @@ const ProductDescriptionEditor: React.FC<ProductDescriptionEditorProps> = ({
     extensions: [StarterKit],
     immediatelyRender: true,
     content: value,
-    onUpdate: ({editor}) => {
-      onChange(editor.getHTML());
+    onUpdate: (update) => {
+      const ed = update?.editor;
+      if (!ed || typeof ed.getHTML !== "function") return;
+      try {
+        onChange(ed.getHTML());
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.debug(
+          "Editor noch nicht initialisiert — transienter Fehler:",
+          msg,
+        );
+      }
     },
     editable: !disabled,
   });
 
   useEffect(() => {
-    if (editor && editor.getHTML() !== value) {
-      editor.commands.setContent(value);
+    if (!editor) return;
+    try {
+      const current =
+        typeof editor.getHTML === "function" ? editor.getHTML() : null;
+      if (typeof current === "string" && current !== value) {
+        editor.commands?.setContent?.(value);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.debug(
+        "Editor noch nicht initialisiert — transienter Fehler:",
+        msg,
+      );
     }
   }, [value, editor]);
 

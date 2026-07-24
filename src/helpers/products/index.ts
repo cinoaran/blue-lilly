@@ -1,6 +1,13 @@
 import prisma from "@/lib/prisma";
-import {Decimal} from "@prisma/client/runtime/client.js"; // ggf. anpassen
+import {Decimal} from "@prisma/client/runtime/client.js"; // adjust if path differs
 
+/**
+ * Recursively convert Prisma/JS runtime types to plain serializable values:
+ * - Decimal -> number
+ * - Date -> ISO string
+ * - BigInt -> string
+ * - null -> undefined (normalize nullable DB fields)
+ */
 export function convertDecimalToNumber(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(convertDecimalToNumber);
@@ -9,9 +16,17 @@ export function convertDecimalToNumber(obj: unknown): unknown {
     const newObj: Record<string, unknown> = {};
     for (const key in obj as Record<string, unknown>) {
       const value = (obj as Record<string, unknown>)[key];
-      if (value instanceof Decimal) {
+
+      if (value === null) {
+        // normalize DB null -> undefined for client props
+        newObj[key] = undefined;
+      } else if (value instanceof Decimal) {
         newObj[key] = value.toNumber();
-      } else if (typeof value === "object" && value !== null) {
+      } else if (value instanceof Date) {
+        newObj[key] = value.toISOString();
+      } else if (typeof value === "bigint") {
+        newObj[key] = value.toString();
+      } else if (typeof value === "object") {
         newObj[key] = convertDecimalToNumber(value);
       } else {
         newObj[key] = value;

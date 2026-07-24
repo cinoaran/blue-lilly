@@ -21,10 +21,10 @@ const Main = () => {
             className="flex items-center justify-start gap-2 w-fit h-9 underlined uppercase"
           >
             <HomeIcon
-              className="size-[0.9rem]"
+              className="size-[0.8rem]"
               strokeWidth={pathname === "/" ? 3 : 2}
             />
-            Home
+            <span className="text-md font-normal">Home</span>
           </Link>
         </li>
         <li
@@ -39,10 +39,10 @@ const Main = () => {
             className="flex items-center justify-start gap-2 w-fit h-9 underlined uppercase"
           >
             <MessageSquareMore
-              className="size-[0.9rem]"
+              className="size-[0.8rem]"
               strokeWidth={pathname === "/blog" ? 3 : 2}
             />
-            Blog
+            <span className="text-md font-normal">Blog</span>
           </Link>
         </li>
         <li
@@ -57,10 +57,10 @@ const Main = () => {
             className="flex items-center justify-start gap-2 w-fit h-9 underlined uppercase"
           >
             <FileQuestion
-              className="size-[0.9rem]"
+              className="size-[0.8rem]"
               strokeWidth={pathname === "/faq" ? 3 : 2}
             />
-            FAQ
+            <span className="text-md font-normal">FAQ</span>
           </Link>
         </li>
       </ul>

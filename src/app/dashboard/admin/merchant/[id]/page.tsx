@@ -9,7 +9,7 @@ import {notFound} from "next/navigation";
 
 export default async function Page(props: unknown) {
   const {params} = props as {params: {id: string}};
-  const id = params.id;
+  const id = await params.id;
 
   // Add new merchant
   if (id === "add") {

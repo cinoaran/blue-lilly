@@ -3,11 +3,15 @@ import formatPrice from "@/helpers/products/formatPrice";
 import {ProductWithVariants} from "@/types/product/product";
 import {Variant} from "@/types/product/variants";
 import {Option} from "@/types/product/options";
-import {Card, CardContent} from "@/components/ui/card";
+import {Card, CardContent, CardFooter} from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
 
-import React, {useMemo, useRef, useState} from "react";
+import React, {useMemo, useRef, useState, useEffect} from "react";
+import {ChevronLeft, ChevronRight} from "lucide-react";
+import {Button} from "../ui/button";
+// inject small CSS to hide webkit scrollbar for pill containers
+
 type SelectedVariant = {
   variantId: string;
   optionId: string;
@@ -73,111 +77,238 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
     return qs ? `/product/${product.slug}?${qs}` : `/product/${product.slug}`;
   }, [product.slug, chosenSize, active?.optionId, firstOption?.id]);
 
+  const isLongDesc = (product.smallDesc ?? "").length > 180;
+
+  const pillRef = useRef<HTMLDivElement | null>(null);
+
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+  const [showChevrons, setShowChevrons] = useState(false);
+
+  const scrollAmount = () => {
+    const el = pillRef.current;
+    if (!el) return 72; // fallback if ref missing
+
+    const first = el.children[0] as HTMLElement | undefined;
+    if (!first) {
+      return Math.max(120, Math.floor(el.clientWidth * 0.6));
+    }
+
+    const firstRect = first.getBoundingClientRect();
+
+    // calculate gap between first and second child (if exists) to include spacing
+    let gap = 0; // sensible default (tailwind gap-2 => 8px)
+    if (el.children.length > 1) {
+      const secondRect = (
+        el.children[1] as HTMLElement
+      ).getBoundingClientRect();
+      const measuredGap = Math.round(secondRect.left - firstRect.right);
+      if (!Number.isNaN(measuredGap) && measuredGap >= 0) gap = measuredGap;
+    }
+
+    return Math.round(firstRect.width + gap);
+  };
+
+  const updateScrollButtons = () => {
+    const el = pillRef.current;
+    if (!el) {
+      setCanScrollPrev(false);
+      setCanScrollNext(false);
+      setShowChevrons(false);
+      return;
+    }
+    const {scrollLeft, scrollWidth, clientWidth} = el;
+    const maxScrollLeft = scrollWidth - clientWidth;
+    const epsilon = 2; // tolerance
+    setShowChevrons(scrollWidth > clientWidth + epsilon);
+    setCanScrollPrev(scrollLeft > epsilon);
+    setCanScrollNext(scrollLeft < maxScrollLeft - epsilon);
+  };
+
+  const onPillScroll = () => {
+    updateScrollButtons();
+  };
+
+  useEffect(() => {
+    updateScrollButtons();
+    const onResize = () => updateScrollButtons();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [variants.length]);
+
+  const selectVariant = (v: Variant) => {
+    const opt = v.options?.[0];
+    const nextImgs =
+      opt?.image && opt.image.length ? opt.image : ["/product/shirt.svg"];
+    setIsThumbsFading(true);
+    setIsFading(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setDisplayedOptions(v.options ?? []);
+      setDisplayedImage(nextImgs[0]);
+      setActive(
+        opt
+          ? {
+              variantId: v.id,
+              optionId: opt.id,
+              size: v.size,
+              units: v.units,
+              image: opt.image?.[0],
+              sellPrice:
+                opt.sellPrice != null ? Number(opt.sellPrice) : undefined,
+            }
+          : {
+              variantId: v.id,
+              optionId: "",
+              size: v.size,
+              units: v.units,
+            },
+      );
+      setIsThumbsFading(false);
+      setIsFading(false);
+    }, 180);
+  };
+
   return (
-    <Card className="flex flex-col rounded-md bg-white shadow-md transition-shadow duration-300 hover:shadow-lg">
-      <CardContent>
-        <Link href={href} className="w-full">
-          <div className="relative aspect-7/8 w-full overflow-hidden rounded-md">
+    <Card className="flex flex-col items-center justify-center rounded-md hover:scale-101 p-0 hide-scrollbar">
+      <CardContent className="p-0 w-full flex-1">
+        {/*Image & Preis*/}
+        <Link href={href}>
+          <div className="relative aspect-6/5 overflow-hidden bg-white rounded-br-0 rounded-bl-0 rounded-tr-md rounded-tl-md border-b border-border">
             <Image
               src={displayedImage}
               alt={product.name}
               fill
               sizes="(min-width: 768px) 70vw, 50vw"
-              className={`object-cover transition-opacity duration-180 ${
+              className={`object-contain hover:scale-105 transition-transform duration-300 ${
                 isFading ? "opacity-0" : "opacity-100"
               }`}
             />
 
-            <div className="absolute bottom-4 right-4 flex items-center gap-0 overflow-hidden rounded-md bg-black/50">
-              <span className="rounded-l-md bg-accent px-3 py-2 text-sm font-medium uppercase text-foreground">
+            <div className="absolute bottom-4 right-4 flex items-center gap-0 overflow-hidden rounded-md bg-primary/50">
+              <span className="rounded-l-md bg-primary px-3 py-2 text-sm font-medium uppercase text-accent-foreground">
                 {label}
               </span>
-              <span className="rounded-r-md bg-black/30 px-3 py-2 text-md font-bold text-white">
+              <span className="rounded-r-md bg-primary px-3 py-2 font-bold text-accent-foreground">
                 {formatPrice(Number(activePrice)) ?? "N/A"}
               </span>
             </div>
           </div>
-
-          <div className="mt-2 flex flex-col gap-2 p-4">
-            <h2 className="text-lg font-semibold text-black">{product.name}</h2>
-            <div className="relative h-14 overflow-hidden">
-              <p className="line-clamp-3 text-sm text-gray-600">
+          {/* Name & Brand: fixed area so cards align when names wrap */}
+          <div className="px-3 mt-4 w-full flex-1">
+            <div className="min-h-16 flex items-start">
+              <h2 className="text-lg font-semibold">
+                {product.brand} {product.name}
+              </h2>
+            </div>
+            {/* smallDesc: clamp to 3 lines and reserve space so cards align */}
+            <div className="overflow-hidden h-20">
+              <span className="line-clamp-2 text-md font-normal leading-5">
                 {product.smallDesc}
-              </p>
+              </span>
+              {isLongDesc && (
+                <div className="flex items-center justify-end w-full">
+                  <span className="flex items-center justify-end w-fit text-xs font-medium text-primary italic m-2 underlined">
+                    Click for more Details <ChevronRight size={16} />
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </Link>
 
-        {/* Size pill selector */}
-        <div className="p-3 pt-0">
-          <div className="flex flex-wrap gap-2">
-            {variants.map((v: Variant) => {
-              const isActive = v.size === chosenSize && v.units === chosenUnits;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  className={`px-3 py-1 rounded-md border text-sm font-medium transition ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : "bg-accent/10 text-gray-300"
-                  }`}
-                  onClick={() => {
-                    const opt = v.options?.[0];
-                    const nextImgs =
-                      opt?.image && opt.image.length
-                        ? opt.image
-                        : ["/product/shirt.svg"];
-                    setIsThumbsFading(true);
-                    setIsFading(true);
-                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                    timeoutRef.current = setTimeout(() => {
-                      setDisplayedOptions(v.options ?? []);
-                      setDisplayedImage(nextImgs[0]);
-                      setActive(
-                        opt
-                          ? {
-                              variantId: v.id,
-                              optionId: opt.id,
-                              size: v.size,
-                              units: v.units,
-                              image: opt.image?.[0],
-                              sellPrice:
-                                opt.sellPrice != null
-                                  ? Number(opt.sellPrice)
-                                  : undefined,
-                            }
-                          : {
-                              variantId: v.id,
-                              optionId: "",
-                              size: v.size,
-                              units: v.units,
-                            },
-                      );
-                      setIsThumbsFading(false);
-                      setIsFading(false);
-                    }, 180);
-                  }}
-                >
-                  {v.size} {v.units ? ` ${v.units}` : ""}
-                </button>
-              );
-            })}
+        <CardFooter className="flex flex-col items-start justify-start gap-1 py-5 border-t-[0.3px] border-border w-full">
+          {/* Size pill selector: horizontal slider with side chevrons */}
+          <div className="w-full mb-2">
+            <div className="relative">
+              {showChevrons && (
+                <>
+                  <Button
+                    variant="default"
+                    type="button"
+                    aria-label="Previous sizes"
+                    title="Previous sizes"
+                    onClick={() => {
+                      const el = pillRef.current;
+                      if (!el) return;
+                      el.scrollBy({left: -scrollAmount(), behavior: "smooth"});
+                    }}
+                    disabled={!canScrollPrev}
+                    aria-disabled={!canScrollPrev}
+                    className={`absolute -left-6 top-1/2 -translate-y-1/2 z-10 w-7 h-8 bg-primary border-0 flex items-center justify-center rounded-md hover: ${
+                      !canScrollPrev
+                        ? "opacity-40 pointer-events-none"
+                        : "bg-primary/30"
+                    }`}
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+
+                  <Button
+                    variant="default"
+                    type="button"
+                    aria-label="Next sizes"
+                    title="Next sizes"
+                    onClick={() => {
+                      const el = pillRef.current;
+                      if (!el) return;
+                      el.scrollBy({left: scrollAmount(), behavior: "smooth"});
+                    }}
+                    disabled={!canScrollNext}
+                    aria-disabled={!canScrollNext}
+                    className={`absolute -right-6 top-1/2 -translate-y-1/2 w-7 h-8 bg-primary/30 outline-none flex items-center justify-center rounded-md hover: ${
+                      !canScrollNext
+                        ? "opacity-10 pointer-events-none"
+                        : "bg-primary"
+                    }`}
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                </>
+              )}
+
+              <div
+                ref={pillRef}
+                onScroll={onPillScroll}
+                className="flex items-center justify-start gap-2 overflow-x-auto hide-scrollbar mx-6 snap-x snap-mandatory scroll-smooth"
+                style={{WebkitOverflowScrolling: "touch"}}
+              >
+                {variants.map((v: Variant) => {
+                  const isActive =
+                    v.size === chosenSize && v.units === chosenUnits;
+                  return (
+                    <Button
+                      key={v.id}
+                      type="button"
+                      className={`shrink-0 snap-start w-26 h-8 flex items-center px-3 rounded-md border text-[0.6rem] font-medium transition ${
+                        isActive
+                          ? "bg-primary text-accent-foreground  hover:bg-primary/90"
+                          : "bg-primary/40 hover:bg-primary text-white/90 hover:text-accent-foreground"
+                      }`}
+                      onClick={() => selectVariant(v)}
+                    >
+                      {v.size}
+                      {v.units ? ` ${v.units}` : ""}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Option thumbnails for the chosen size */}
           <div
-            className={`mt-3 grid grid-cols-6 gap-2 transition-opacity duration-150 ${isThumbsFading ? "opacity-0" : "opacity-100"}`}
+            className={`mt-2 grid grid-cols-4 gap-2 transition-opacity duration-150 ${isThumbsFading ? "opacity-0" : "opacity-100"}`}
           >
             {displayedOptions.map((opt: Option) => {
               const src = opt.image?.[0] ?? "/product/shirt.svg";
               const isOptActive =
                 opt.id === (active?.optionId ?? firstOption?.id);
               return (
-                <button
+                <Button
                   key={opt.id}
                   type="button"
-                  className={`relative aspect-7/8 rounded-md border bg-transparent transition-all duration-200 ${isOptActive ? "ring-2 ring-primary" : ""}`}
+                  className={`relative aspect-5/6 size-15 rounded-md border bg-transparent transition-all duration-200 ${isOptActive ? "ring-2 ring-primary" : ""}`}
                   onClick={() => {
                     setIsFading(true);
                     setTimeout(() => {
@@ -206,11 +337,11 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                     sizes="(min-width: 768px) 25vw, 33vw"
                     className="object-cover p-1 transition-transform duration-200 hover:scale-105"
                   />
-                </button>
+                </Button>
               );
             })}
           </div>
-        </div>
+        </CardFooter>
       </CardContent>
     </Card>
   );

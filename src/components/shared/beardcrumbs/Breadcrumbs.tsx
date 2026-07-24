@@ -14,7 +14,7 @@ interface BreadcrumbsProps {
 
 const Breadcrumbs = ({items}: BreadcrumbsProps) => {
   return (
-    <Breadcrumb className="my-12">
+    <Breadcrumb className="my-2">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/" className="flex items-center">

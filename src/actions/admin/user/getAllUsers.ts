@@ -9,6 +9,7 @@ export async function getAllUsers(
   try {
     await ensureAndRequire(opts, "admin:read");
   } catch (err) {
+    console.error("getAllUsers: permission check failed", err);
     return null;
   }
 

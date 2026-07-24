@@ -18,7 +18,7 @@
   --gradient-end: oklch(93.456% 0.00968 298.942);
 
   /* Cards & Panels */
-  --card: oklch(99.336% 0.00316 15.246);
+  --card: oklch(99.385% 0.00297 264.8);
   --card-foreground: oklch(12% 0 0);
 
   /* Tooltips */
@@ -48,11 +48,12 @@
   --success-foreground: oklch(100% 0 0);
 
   /* Formulare */
-  --input: oklch(100% 0 0);
-  --ring: oklch(50% 0.1 250);
+  --input: oklch(97.302% 0.01339 286.034);
+  --ring: oklch(59.542% 0.00393 248.286);
+  --border: oklch(91.725% 0.00815 254.081);
 
   /* Komponenten */
-  --sheet: oklch(100% 0 0);
+  --sheet: oklch(100% 0.00011 271.152);
   --sheet-foreground: oklch(35.758% 0.09847 252.813);
   --sheet-border: oklch(95% 0 0);
 
@@ -73,19 +74,23 @@
 }
 
 .dark {
-  --background: oklch(12% 0 0);
+  --background: oklch(52.114% 0.00161 285.797);
   --gradient-start: oklch(15% 0 0);
   --gradient-end: oklch(32.313% 0.00282 16.587);
-  --foreground: oklch(95% 0 0);
+  --foreground: oklch(99.58% 0.00259 230.474);
 
-  --card: oklch(18% 0 0);
-  --card-foreground: oklch(95% 0 0);
+  --border: oklch(43.317% 0.00261 16.221);
+
+  --card: oklch(26.982% 0.00553 285.95);
+  --card-foreground: oklch(99.336% 0.00316 15.246);
 
   --popover: oklch(20% 0 0);
   --popover-foreground: oklch(95% 0 0);
 
+  --ring: oklch(87.917% 0.0001 271.152);
+
   --muted: oklch(50% 0 0);
-  --muted-foreground: oklch(70% 0 0);
+  --muted-foreground: oklch(98.809% 0.00011 271.152);
 
   --accent: oklch(30% 0 0);
   --accent-foreground: oklch(95% 0 0);
@@ -93,11 +98,11 @@
   --tooltip: oklch(20% 0 0);
   --tooltip-foreground: oklch(95% 0 0);
 
-  --sheet: oklch(12% 0 0);
+  --sheet: oklch(24.394% 0.0019 286.048);
   --sheet-foreground: oklch(95% 0 0);
   --sheet-border: oklch(95% 0 0);
 
-  --primary: oklch(81.8% 0.1294 245.55);
+  --primary: oklch(61.897% 0.11196 239.781);
   --primary-foreground: oklch(95% 0 0);
   --secondary: oklch(30% 0 0);
   --secondary-foreground: oklch(95% 0 0);
@@ -166,7 +171,13 @@
     scroll-behavior: smooth;
     font-size: 16px;
   }
-
+  body {
+    background: radial-gradient(
+      ellipse at bottom,
+      var(--gradient-start) 0%,
+      var(--gradient-end) 100%
+    );
+  }
   /* Typografie für Montserrat */
   h1 {
     font-weight: 700;
@@ -177,13 +188,18 @@
 
   h2 {
     font-weight: 600;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-size: clamp(1.5rem, 2vw, 1.9rem);
     line-height: 1.2;
   }
 
   h3 {
     font-weight: 500;
     font-size: clamp(1.25rem, 3vw, 1.75rem);
+    line-height: 1.3;
+  }
+  h4 {
+    font-weight: 500;
+    font-size: clamp(0.8rem, 1vw, 0.9rem);
     line-height: 1.3;
   }
 
@@ -197,7 +213,7 @@
   span {
     font-weight: 800;
     line-height: 1.5;
-    font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+    font-size: clamp(0.65rem, 1vw, 0.8rem);
   }
 
   /* Buttons */
@@ -206,11 +222,10 @@
     font-weight: 500;
     padding: 0.75rem 1.5rem;
     border-radius: var(--radius);
-    border: none;
+    color: var(--muted);
+    border: 0.2px solid var(--border);
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--primary);
-    color: var(--primary-foreground);
   }
 
   /* Utility Classes */
@@ -249,14 +264,14 @@
   .editor-container {
     border-radius: var(--radius);
     overflow: hidden;
-    background-color: var(--background);
+    background-color: black;
     outline: none !important;
     box-shadow: none !important;
   }
 
   .editor-toolbar {
     border-bottom: 1px solid var(--border);
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: black;
     padding: 0.5rem;
     display: flex;
     flex-wrap: wrap;
@@ -266,7 +281,7 @@
   .editor-button {
     padding: 0.5rem;
     border-radius: var(--radius);
-    background-color: var(--background);
+    background-color: var(--bg-background);
     transition:
       background-color 0.15s ease,
       color 0.15s ease;
@@ -287,7 +302,9 @@
   .editor-content {
     padding: 1rem;
     min-height: 12.5rem;
-    background-color: var(--background);
+    background-color: var(--bg-background);
+    color: white;
+    font-family: var(--font-sans);
   }
 
   .editor-content:focus-visible,
@@ -311,6 +328,8 @@
 
   .editor-content li {
     margin-bottom: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   .editor-content ul ul {
@@ -376,4 +395,40 @@
   .product-content li {
     margin-bottom: 0.25rem;
   }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Ensure scrolled-to product list is not hidden behind fixed header/slider */
+#product-list {
+  scroll-margin-top: 260px;
+}
+
+/* Badge bounce animation used for cart count */
+@keyframes badge-bounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-6px) scale(1.15);
+  }
+  50% {
+    transform: translateY(0) scale(0.98);
+  }
+  70% {
+    transform: translateY(-2px) scale(1.03);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.badge-bounce {
+  animation: badge-bounce 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }

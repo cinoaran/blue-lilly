@@ -2,8 +2,10 @@
 
 import prisma from "@/lib/prisma";
 import {CreateMerchantInput} from "@/actions/admin/merchant/create";
+import {requireServerPermission} from "@/acl/server";
 
 export async function updateMerchant(id: string, data: CreateMerchantInput) {
+  await requireServerPermission("merchant:manage");
   const partnersToCreate = (data.partners || [])
     .filter((p) => p && p.name && p.name.trim().length > 0)
     .map((p) => ({
