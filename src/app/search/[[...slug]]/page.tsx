@@ -1,8 +1,9 @@
 import ProductCard from "@/components/Product/ProductCard";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import {PaginationProducts} from "@/components/shared/pagination";
-import {convertDecimalToNumber} from "@/helpers/products";
-import {getAllCategoryTree, getSearchProducts} from "@/actions/shared";
+import {convertDecimalToNumber} from "@/helpers";
+import {getAllCategoryTree} from "@/actions/categories";
+import {getSearchProducts} from "@/actions/products";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
 // import {sleep} from "@/lib/utils";
@@ -141,7 +142,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
                   {safeBrowseProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
@@ -150,14 +151,14 @@ const CategoryPage = async ({params, searchParams}: Props) => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+          <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[80vw] md:w-[90vw">
             {safeProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="my-12 text-center text-sm text-foreground/70">
           Showing {safeProducts.length} of {finalTotal} results
           {finalTotal >= 1 && (
             <PaginationProducts
@@ -181,37 +182,42 @@ const CategoryPage = async ({params, searchParams}: Props) => {
   ];
 
   return (
-    <div className="mx-auto max-w-[95vw] p-5">
+    <main className="container relative mx-auto max-w-[85vw]">
       <div className="flex items-center justify-start mb-10">
         <Breadcrumbs items={breadcrumbs} />
       </div>
-      <Suspense
-        fallback={
-          <div className="flex items-start justify-start gap-4 mb-4">
-            <span className="animate-pulse w-32 h-6 bg-gray-300 rounded-md"></span>
-            <span className="animate-pulse w-32 h-6 bg-gray-300 rounded-md"></span>
+      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)]">
+        <Suspense
+          fallback={
+            <div className="flex items-start justify-start gap-4 mb-4">
+              <span className="animate-pulse w-32 h-6 bg-gray-300 rounded-md"></span>
+              <span className="animate-pulse w-32 h-6 bg-gray-300 rounded-md"></span>
+            </div>
+          }
+        >
+          <h3 className="w-full text-left font-thin text-4xl p-6 text-foreground drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)] z-0">
+            Filter Products {categoryLabel && `in ${categoryLabel}`}
+          </h3>
+          <div className="flex flex-col sm:flex-row items-center justify-between mx-auto gap-10 mb-10 w-[65vw]">
+            <div className="flex items-center justify-center gap-4 flex-1">
+              <SearchInput
+                defaultQuery={query}
+                defaultCategory={category}
+                defaultCategoryPath={categoryPathNormalized}
+                categoryOptions={categoryOptions}
+              />
+            </div>
+            <div className="w-54">
+              <SortSelect defaultValue={rawSort} />
+            </div>
           </div>
-        }
-      >
-        <div className="flex flex-col sm:flex-row items-start justify-between gap-10 mb-10">
-          <div className="flex items-center justify-center gap-4 flex-1">
-            <SearchInput
-              defaultQuery={query}
-              defaultCategory={category}
-              defaultCategoryPath={categoryPathNormalized}
-              categoryOptions={categoryOptions}
-            />
-          </div>
-          <div className="w-54">
-            <SortSelect defaultValue={rawSort} />
-          </div>
-        </div>
-      </Suspense>
+        </Suspense>
 
-      <Suspense fallback={<ProductsSkeleton limit={limit} />}>
-        <Products query={query} page={page} limit={limit} rawSort={rawSort} />
-      </Suspense>
-    </div>
+        <Suspense fallback={<ProductsSkeleton limit={limit} />}>
+          <Products query={query} page={page} limit={limit} rawSort={rawSort} />
+        </Suspense>
+      </div>
+    </main>
   );
 };
 

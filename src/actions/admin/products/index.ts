@@ -3,11 +3,7 @@ import prisma from "@/lib/prisma";
 import {requireServerPermission} from "@/acl/server";
 import {ProductSchema} from "@/zod-schemas/products/ProductShema";
 import {ProductFormData} from "@/types/product/productFormData";
-import {
-  generateSku,
-  convertDecimalToNumber,
-  normalizeSku,
-} from "@/helpers/products";
+import {generateSku, convertDecimalToNumber, normalizeSku} from "@/helpers";
 import {utapi} from "@/uploadthing/server";
 import {Variant} from "@/types/product/variants";
 import {Option} from "@/types/product/options";

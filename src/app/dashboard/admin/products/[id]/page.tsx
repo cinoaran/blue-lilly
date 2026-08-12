@@ -7,7 +7,7 @@ import {
   ProductFormData,
 } from "@/types/product/productFormData";
 import {getProductById} from "@/actions/admin/products";
-import {convertDecimalToNumber} from "@/helpers/products/index";
+import {convertDecimalToNumber} from "@/helpers";
 import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
 
 export default async function EditProductPage(props: unknown) {

@@ -29,22 +29,25 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [active, setActive] = useState<SelectedVariant | null>(() => {
-    if (!firstVariant || !firstOption) return null;
+    if (!firstVariant) return null;
+    const initOpt = firstVariant?.options?.[0];
     return {
-      variantId: firstVariant.id,
-      optionId: firstOption.id,
-      size: firstVariant.size,
-      units: firstVariant.units,
-      image: firstOption.image?.[0],
+      variantId: firstVariant.id ?? `${product.id}-v-0`,
+      optionId: initOpt?.id ?? "",
+      size: (firstVariant.size as string) ?? "",
+      units: firstVariant.units ?? undefined,
+      image: initOpt?.image?.[0] ?? undefined,
       sellPrice:
-        firstOption.sellPrice != null
-          ? Number(firstOption.sellPrice)
+        initOpt && initOpt.sellPrice != null
+          ? Number(initOpt.sellPrice)
           : undefined,
     };
   });
 
   const [displayedImage, setDisplayedImage] = useState<string>(
-    active?.image ?? firstOption?.image?.[0] ?? "/product/shirt.svg",
+    (active?.image as string) ??
+      (firstOption?.image?.[0] as string) ??
+      "/product/shirt.svg",
   );
   const [isFading, setIsFading] = useState(false);
   const [displayedOptions, setDisplayedOptions] = useState<Option[]>(
@@ -52,21 +55,33 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
   );
   const [isThumbsFading, setIsThumbsFading] = useState(false);
 
-  const chosenSize = active?.size ?? firstVariant?.size;
-  const chosenUnits = active?.units ?? firstVariant?.units;
+  const chosenSize =
+    (active?.size as string) ?? (firstVariant?.size as string) ?? "";
+  const chosenUnits = active?.units ?? firstVariant?.units ?? undefined;
 
   // price fallback: active -> chosen option -> undefined
   const optionIdForPrice = active?.optionId ?? firstOption?.id;
-  const activePrice =
-    active?.sellPrice ??
-    variants
-      .find((v: Variant) => v.size === chosenSize)
-      ?.options?.find((o: Option) => o.id === optionIdForPrice)?.sellPrice ??
-    undefined;
+  let activePrice: unknown = undefined;
+  if (active?.sellPrice != null) {
+    activePrice = active.sellPrice;
+  } else {
+    const found = variants.find((v: Variant) => v.size === chosenSize);
+    activePrice =
+      found?.options?.find((o: Option) => o.id === optionIdForPrice)
+        ?.sellPrice ??
+      firstOption?.sellPrice ??
+      0;
+  }
+  const activePriceNum = Number(activePrice ?? 0);
 
   const label = chosenSize
     ? `${chosenSize}${chosenUnits ? ` ${chosenUnits}` : ""}`
     : "Select variant";
+
+  const altText =
+    (product.name && String(product.name).trim()) ||
+    (product.slug && String(product.slug).trim()) ||
+    "Produktbild";
 
   const href = useMemo(() => {
     const params = new URLSearchParams();
@@ -177,7 +192,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
           <div className="relative aspect-6/5 overflow-hidden bg-white rounded-br-0 rounded-bl-0 rounded-tr-md rounded-tl-md border-b border-border">
             <Image
               src={displayedImage}
-              alt={product.name}
+              alt={altText}
               fill
               sizes="(min-width: 768px) 70vw, 50vw"
               className={`object-contain hover:scale-105 transition-transform duration-300 ${
@@ -190,7 +205,9 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                 {label}
               </span>
               <span className="rounded-r-md bg-primary px-3 py-2 font-bold text-accent-foreground">
-                {formatPrice(Number(activePrice)) ?? "N/A"}
+                {formatPrice(
+                  Number.isFinite(activePriceNum) ? activePriceNum : 0,
+                ) ?? "N/A"}
               </span>
             </div>
           </div>
@@ -273,12 +290,13 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                 className="flex items-center justify-start gap-2 overflow-x-auto hide-scrollbar mx-6 snap-x snap-mandatory scroll-smooth"
                 style={{WebkitOverflowScrolling: "touch"}}
               >
-                {variants.map((v: Variant) => {
+                {variants.map((v: Variant, vi: number) => {
                   const isActive =
                     v.size === chosenSize && v.units === chosenUnits;
+                  const key = v.id ?? `${product.id}-variant-${vi}`;
                   return (
                     <Button
-                      key={v.id}
+                      key={key}
                       type="button"
                       className={`shrink-0 snap-start w-26 h-8 flex items-center px-3 rounded-md border text-[0.6rem] font-medium transition ${
                         isActive
@@ -287,7 +305,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                       }`}
                       onClick={() => selectVariant(v)}
                     >
-                      {v.size}
+                      {String(v.size ?? "-")}
                       {v.units ? ` ${v.units}` : ""}
                     </Button>
                   );
@@ -332,7 +350,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                 >
                   <Image
                     src={src}
-                    alt={`${product.name} ${chosenSize} ${opt.id}`}
+                    alt={`${product.name ?? altText} ${chosenSize ?? ""} ${opt.id}`}
                     fill
                     sizes="(min-width: 768px) 25vw, 33vw"
                     className="object-cover p-1 transition-transform duration-200 hover:scale-105"

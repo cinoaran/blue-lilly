@@ -17,7 +17,10 @@ const Breadcrumbs = ({items}: BreadcrumbsProps) => {
     <Breadcrumb className="my-2">
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/" className="flex items-center">
+          <BreadcrumbLink
+            href="/"
+            className="flex items-center text-primary hover:scale-110 transition-transform duration-200"
+          >
             <HomeIcon className="mr-2 h-4 w-4" />
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -25,15 +28,16 @@ const Breadcrumbs = ({items}: BreadcrumbsProps) => {
         {items.map((item, index) => (
           <React.Fragment key={index}>
             <BreadcrumbSeparator />
-            <BreadcrumbItem className="text-sm">
+            <BreadcrumbItem className="text-primary underlined">
               {item.active ? (
-                <span className={`ml-2 font-medium`}>{item.label}</span>
-              ) : (
-                <BreadcrumbLink
-                  href={item.href}
-                  className="ml-2 text-sm font-normal text-foreground/70 hover:text-foreground"
-                >
+                <span className={`font-medium hover:text-primary`}>
                   {item.label}
+                </span>
+              ) : (
+                <BreadcrumbLink href={item.href} className="font-normal">
+                  <span className={`font-medium hover:text-primary`}>
+                    {item.label}
+                  </span>
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>

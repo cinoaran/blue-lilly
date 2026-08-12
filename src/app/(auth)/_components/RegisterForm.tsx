@@ -18,7 +18,7 @@ import {Button} from "@/components/ui/button";
 import {useEffect, useState} from "react";
 import FormError from "@/components/shared/authComponent/FormError";
 import FormSuccess from "@/components/shared/authComponent/FormSuccess";
-import {authClient} from "@/lib/auth-client";
+import {authClient} from "@/lib/auth/auth-client";
 import Spinner from "@/components/Loader/Spinner";
 
 const Registerform = () => {

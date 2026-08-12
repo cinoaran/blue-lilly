@@ -1,8 +1,9 @@
-import {getAllProducts, getAllCategoryTree} from "@/actions/shared";
+import {getAllProducts} from "@/actions/products";
+import {getAllCategoryTree} from "@/actions/categories";
 import HeaderCarousel from "@/components/Carousel/HorizontalSlider";
 import ProductCard from "@/components/Product/ProductCard";
 import {PaginationProducts} from "@/components/shared/pagination";
-import {convertDecimalToNumber} from "@/helpers/products";
+import {convertDecimalToNumber} from "@/helpers";
 import prisma from "@/lib/prisma";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
@@ -52,10 +53,10 @@ export default async function Home(props: {searchParams: SearchParams}) {
         </div>
       </div>
     ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
-        {(safeProducts as ProductWithVariants[]).map((product) => (
+      <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
+        {(safeProducts as ProductWithVariants[]).map((product, idx) => (
           <ProductCard
-            key={(product as ProductWithVariants).id}
+            key={`prod-${(product as ProductWithVariants).id ?? (product as ProductWithVariants).slug ?? idx}`}
             product={product as unknown as ProductWithVariants}
           />
         ))}
@@ -68,13 +69,16 @@ export default async function Home(props: {searchParams: SearchParams}) {
   const totalPages = Math.ceil(total / limit); // Math.ceil(total / limit);
 
   return (
-    <main className="relative mx-auto max-w-[95vw]">
+    <main className="container relative mx-auto max-w-[95vw]">
       <Breadcrumbs items={[{label: "Home", href: "/"}]} />
-      <h1 className="absolute top-32 w-full text-center font-thin text-6xl  md:text-6xl text-foreground drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)] xl:text-7xl">
-        Zyntra-Shop 2026
-      </h1>
       <div className="my-10">
-        <HeaderCarousel />
+        <Suspense
+          fallback={
+            <div className="w-full h-137.5 bg-gray-200 animate-pulse rounded-md" />
+          }
+        >
+          <HeaderCarousel />
+        </Suspense>
       </div>
       <hr className="border-foreground/10 my-12" />
       <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)]">

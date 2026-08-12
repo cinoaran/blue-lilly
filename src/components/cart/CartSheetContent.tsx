@@ -22,8 +22,10 @@ type CartWithItems = Cart & {
 
 export function CartSheetContent({
   initialCart,
+  mode = "vertical",
 }: {
   initialCart?: CartWithItems | null;
+  mode?: "vertical" | "horizontal";
 }) {
   const cart = initialCart ?? null;
 
@@ -33,5 +35,6 @@ export function CartSheetContent({
     );
   }
 
-  return <CartItemList items={cart.items} />;
+  // For the sheet we prefer vertical stacking by default
+  return <CartItemList items={cart.items} mode={mode} />;
 }

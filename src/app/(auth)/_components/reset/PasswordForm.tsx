@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import {ResetPasswordSchema} from "@/zod-schemas/auth/ResetPasswordSchema";
 
-import {authClient} from "@/lib/auth-client";
+import {authClient} from "@/lib/auth/auth-client";
 
 import {useRouter} from "next/navigation";
 import FormSuccess from "@/components/shared/authComponent/FormSuccess";

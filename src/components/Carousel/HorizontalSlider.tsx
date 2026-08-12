@@ -25,10 +25,8 @@ export default async function HeaderCarousel() {
     return (
       <div className="w-full h-56 my-52 flex items-center justify-center">
         <div className="text-center bg-secondary/50 border border-foreground/10 rounded-md p-6">
-          <h3 className="text-lg font-medium">
-            Keine Slidebilder aktuell verfügbar
-          </h3>
-          <p className="text-sm text-foreground/60 mt-2">
+          <h3 className="font-medium">Keine Slidebilder aktuell verfügbar</h3>
+          <p className="text-foreground/60 mt-2">
             Lege im Admin-Bereich neue Slides an, um sie hier anzuzeigen.
           </p>
         </div>

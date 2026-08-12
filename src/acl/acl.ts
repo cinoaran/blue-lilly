@@ -1,8 +1,8 @@
-import {getSessionOnce} from "@/lib/sessionCache";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {roleHasPermission} from "./policies";
 
 // Type alias to mirror better-auth Session type (importing concrete type can be done if needed)
-import type {Session as AuthSession} from "@/lib/auth";
+import type {Session as AuthSession} from "@/lib/auth/auth";
 
 export type Session = AuthSession | null;
 

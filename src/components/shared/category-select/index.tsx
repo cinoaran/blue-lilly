@@ -4,7 +4,7 @@ import {
   NativeSelectOptGroup,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import {SearchOption} from "@/helpers/category/searchOptions";
+import {SearchOption} from "@/lib/category/categoryTree";
 
 const ALL_CATEGORIES_VALUE = "__all_categories__";
 const normalizeCategoryValue = (input: string) =>

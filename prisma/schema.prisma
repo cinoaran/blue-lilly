@@ -1,11 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -52,6 +49,22 @@ enum UnitCategory {
   OTHER
 }
 
+enum CartStatus {
+  ACTIVE
+  ORDERED
+  ABANDONED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+// --- MODELS ---
+
 model User {
   id            String    @id @default(cuid()) @map("id")
   name          String
@@ -59,17 +72,21 @@ model User {
   emailVerified Boolean   @default(false)
   image         String?
   premium       Boolean   @default(false)
-  role          UserRole  @default(user) // Enum statt String
+  role          UserRole  @default(user)
   banned        Boolean   @default(false)
   banReason     String?
   banExpires    Int? /// Unix timestamp for ban expiration
   otpCode       String?
   otpExpires    DateTime?
+  isGuest       Boolean   @default(false) // ← kennzeichnet Gast-User
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  carts         Cart[]
+
+  sessions  Session[]
+  accounts  Account[]
+  carts     Cart[]
+  orders    Order[]
+  addresses Address[]
 
   @@map("user")
 }
@@ -128,9 +145,9 @@ model Merchant {
   web       String
   phone     String
   email     String
-  partners  Partner[] // Mehrzahl, da 1:n
-  status    MerchantStatus @default(pending) // Enum statt String
-  products  Product[] // 1:n zu Product
+  partners  Partner[]
+  status    MerchantStatus @default(pending)
+  products  Product[]
   createdAt DateTime       @default(now()) @db.Timestamp(6)
   updatedAt DateTime       @updatedAt @db.Timestamp(6)
 }
@@ -143,29 +160,31 @@ model Partner {
   department String
   createdAt  DateTime @default(now()) @db.Timestamp(6)
   updatedAt  DateTime @updatedAt @db.Timestamp(6)
-  Merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   merchantId String
 }
 
 model Product {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   merchantId  String
   name        String
   smallDesc   String
   longDesc    String
-  isActive    Boolean   @default(false)
-  isFeatured  Boolean   @default(false)
+  isActive    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
   brand       String
   subcategory String?
-  rating      Decimal   @default(0) @db.Decimal(4, 2)
-  numReviews  Int       @default(0)
-  slug        String    @unique
+  rating      Decimal  @default(0) @db.Decimal(4, 2)
+  numReviews  Int      @default(0)
+  slug        String   @unique
   categoryId  String
-  createdAt   DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime  @updatedAt @db.Timestamp(6)
-  variants    Variant[]
-  category    Category  @relation(fields: [categoryId], references: [id])
-  merchant    Merchant  @relation(fields: [merchantId], references: [id]) // Relation ergänzt
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  variants Variant[]
+  category Category  @relation(fields: [categoryId], references: [id])
+  merchant Merchant  @relation(fields: [merchantId], references: [id])
 
   @@index([merchantId])
   @@index([categoryId, isActive])
@@ -190,8 +209,9 @@ model Variant {
   size      String
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  options   Option[]
+
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options Option[]
 
   @@index([productId])
 }
@@ -212,8 +232,10 @@ model Option {
   weight        Decimal       @default(0) @db.Decimal(6, 2)
   createdAt     DateTime      @default(now()) @db.Timestamp(6)
   updatedAt     DateTime      @updatedAt @db.Timestamp(6)
-  variant       Variant       @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  cartItems     CartItem[]
+
+  variant    Variant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[] // ← neu: Gegenfeld zur OrderItem.option-Relation
 
   @@index([variantId, baseColor])
   @@index([unitCategory, unitValue])
@@ -247,7 +269,7 @@ model Carousel {
 
 model Cart {
   id        String     @id @default(cuid())
-  userId    String?    @unique
+  userId    String?
   cartToken String?    @unique
   status    CartStatus @default(ACTIVE)
   createdAt DateTime   @default(now()) @db.Timestamp(6)
@@ -257,7 +279,7 @@ model Cart {
   items CartItem[]
 
   @@index([cartToken])
-  @@index([userId])
+  @@index([userId, status])
 }
 
 model CartItem {
@@ -277,8 +299,78 @@ model CartItem {
   @@index([optionId])
 }
 
-enum CartStatus {
-  ACTIVE
-  ORDERED
-  ABANDONED
+model Address {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  firstName    String
+  lastName     String
+  company      String?
+  addressLine1 String
+  addressLine2 String?
+  postalCode   String
+  city         String
+  country      String
+  phone        String?
+  email        String?
+
+  shippingOrders Order[] @relation("ShippingAddress")
+  billingOrders  Order[] @relation("BillingAddress")
+
+  @@index([userId])
+}
+
+model Order {
+  id     String  @id @default(cuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  cartId String?
+
+  status OrderStatus @default(PENDING)
+
+  itemsTotal   Int
+  shippingCost Int
+  totalAmount  Int
+  currency     String @default("EUR")
+
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String? @unique
+
+  shippingAddressId String?
+  shippingAddress   Address? @relation("ShippingAddress", fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  billingAddressId  String?
+  billingAddress    Address? @relation("BillingAddress", fields: [billingAddressId], references: [id], onDelete: SetNull)
+
+  shippingSnapshot Json?
+  billingSnapshot  Json?
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  optionId String?
+  option   Option? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  quantity           Int
+  priceAtOrder       Int
+  nameAtOrder        String
+  skuAtOrder         String?
+  productIdAtOrder   String?
+  optionLabelAtOrder String?
+  imageAtOrder       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

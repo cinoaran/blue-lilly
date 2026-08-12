@@ -1,7 +1,7 @@
 "use client";
 
 import {useRouter} from "next/navigation";
-import {authClient} from "@/lib/auth-client";
+import {authClient} from "@/lib/auth/auth-client";
 
 import {useState} from "react";
 import {Button} from "@/components/ui/button";
@@ -14,14 +14,27 @@ export default function SignoutButton() {
   const handleSignOut = async () => {
     try {
       setIsPending(true);
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            router.push("/login");
-            router.refresh();
-          },
-        },
-      });
+
+      // Try to sign out via auth client; if it fails (network), continue to clear local server cookie and redirect.
+      try {
+        await authClient.signOut();
+      } catch (e) {
+        console.warn("authClient.signOut failed, continuing logout flow:", e);
+      }
+
+      try {
+        // server-side clear of httpOnly cart cookie
+        await fetch("/api/cart/clear", {method: "POST"});
+      } catch (e) {
+        console.warn("Failed to clear cart cookie via API", e);
+      }
+
+      try {
+        router.push("/login");
+        router.refresh();
+      } catch (e) {
+        console.warn("Redirect after logout failed:", e);
+      }
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {

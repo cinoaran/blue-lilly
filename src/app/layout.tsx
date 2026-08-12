@@ -1,8 +1,8 @@
 import type {Metadata} from "next";
-import {Comfortaa, Montserrat, Open_Sans} from "next/font/google";
+import {Asap, DM_Sans, Comfortaa} from "next/font/google";
 import {ThemeProvider} from "next-themes";
 import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
-import "./globals.css";
+import "@/app/assets/globals.css";
 import {APP_DESCRIPTION, APP_NAME, APP_NAME_SECOND} from "@/constants";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
@@ -10,16 +10,17 @@ import {TooltipProvider} from "@/components/ui/tooltip";
 
 // NEUE Google Fonts als CSS-Variablen
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const displayFont = Asap({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-display-family",
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
+const sansFont = DM_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans-family",
+  weight: ["400", "500", "600", "700"],
 });
 
 const comfortaa = Comfortaa({
@@ -75,11 +76,11 @@ export default function RootLayout({
         <meta name="description" content={APP_DESCRIPTION} />
       </head>
       <body
-        className={`${montserrat.variable} ${openSans.variable} ${comfortaa.variable} antialiased bg-background`}
+        className={`${displayFont.variable} ${sansFont.variable} ${comfortaa.variable} antialiased bg-background`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main
-            className={`antialiased flex flex-col mx-auto min-h-screen w-full my-0 ${montserrat.variable} ${openSans.variable} ${comfortaa.variable}`}
+            className={`antialiased flex flex-col mx-auto min-h-screen w-full my-0 ${displayFont.variable} ${sansFont.variable} ${comfortaa.variable}`}
           >
             <SidebarProvider defaultOpen={false}>
               <TooltipProvider>

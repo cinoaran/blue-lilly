@@ -2,6 +2,8 @@ import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {ensureSession} from "@/acl/acl";
 
+export const dynamic = "force-dynamic";
+
 export default async function TransactionsPage() {
   const hdrs = await headers();
   const session = await ensureSession({headers: hdrs});

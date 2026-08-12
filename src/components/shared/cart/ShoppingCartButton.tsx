@@ -1,3 +1,5 @@
+"use client";
+
 import React, {useEffect, useRef, useState} from "react";
 import {Badge} from "@/components/ui/badge";
 import {ShoppingBag} from "lucide-react";

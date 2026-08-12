@@ -10,6 +10,9 @@ import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {ensureSession} from "@/acl/acl";
 
+// Ensure admin dashboard page is server-rendered at request time
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
   const hdrs = await headers();
   const session = await ensureSession({headers: hdrs});

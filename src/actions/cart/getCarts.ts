@@ -1,13 +1,13 @@
-// ...existing code...
-import {
+import {cookies, headers} from "next/headers";
+import prisma from "@/lib/prisma";
+import {auth} from "@/lib/auth/auth";
+import type {
   Cart,
   CartItem,
   Option,
   Product,
   Variant,
 } from "@/generated/prisma/browser";
-import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
 
 type CartWithItems = Cart & {
   items: (CartItem & {
@@ -19,27 +19,57 @@ type CartWithItems = Cart & {
   })[];
 };
 
-export async function getCart(): Promise<CartWithItems | null> {
-  const cartId = (await cookies()).get("cartId")?.value;
-  if (!cartId) return null;
-
-  const cart = await prisma.cart.findUnique({
-    where: {id: cartId},
+const cartInclude = {
+  items: {
     include: {
-      items: {
+      option: {
         include: {
-          option: {
+          variant: {
             include: {
-              variant: {
-                include: {product: true},
-              },
+              product: true,
             },
           },
         },
       },
     },
-  });
+  },
+} as const;
 
-  return cart as CartWithItems | null;
+export async function getCart(): Promise<CartWithItems | null> {
+  const hdrs = await headers();
+  const headerObj = Object.fromEntries(hdrs.entries()) as Record<
+    string,
+    string
+  >;
+  const session = await auth.api.getSession({headers: headerObj});
+
+  const userId = session?.user?.id ?? null;
+
+  const cookieStore = cookies();
+  const cartId = (await cookieStore).get("cartId")?.value ?? null;
+
+  if (userId) {
+    const cart = await prisma.cart.findFirst({
+      where: {
+        userId,
+        status: "ACTIVE",
+      },
+      include: cartInclude,
+    });
+
+    return cart as CartWithItems | null;
+  }
+
+  if (cartId) {
+    const cart = await prisma.cart.findUnique({
+      where: {id: cartId},
+      include: cartInclude,
+    });
+
+    if (cart?.status === "ACTIVE") {
+      return cart as CartWithItems;
+    }
+  }
+
+  return null;
 }
-// ...existing code...

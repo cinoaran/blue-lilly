@@ -2,7 +2,7 @@
 
 import {revalidatePath} from "next/cache";
 import prisma from "@/lib/prisma";
-import {getOrCreateCart} from "@/lib/getOrCreateCart";
+import {getOrCreateCart} from "@/lib/cart/getOrCreateCart";
 
 export async function addToCart(
   optionId: string,
@@ -10,7 +10,9 @@ export async function addToCart(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _formData: FormData,
 ): Promise<void> {
-  const cart = await getOrCreateCart();
+  const cart = await getOrCreateCart(undefined, true);
+  console.info("addToCart: using cart id=", cart?.id ?? null);
+  if (!cart) throw new Error("Failed to create or obtain cart");
 
   // Fetch option including available stock
   const option = await prisma.option.findUnique({

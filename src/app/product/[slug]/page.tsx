@@ -1,10 +1,10 @@
 import {notFound} from "next/navigation";
-import {getProductsBySlug, getAllCategories} from "@/actions/shared";
-import {convertDecimalToNumber} from "@/helpers/products";
+import {getProductsBySlug} from "@/actions/products";
+import {getAllCategories} from "@/actions/categories";
+import {convertDecimalToNumber} from "@/helpers";
 import {ProductWithCategoryAndVariants} from "@/types/product/product";
 import {Category} from "@/types/category/category";
 import ProductDetail from "@/components/Product/ProductDetail";
-import {getCart} from "@/actions/cart/getCarts";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 // import sleep from "@/helpers/products/sleep";
 
@@ -50,10 +50,9 @@ const ProductPage = async ({params}: {params: Promise<{slug: string}>}) => {
   ];
   // await sleep(4000); // Simulate loading delay
 
-  const cart = await getCart();
-  const serializableCart = cart
-    ? (JSON.parse(JSON.stringify(cart)) as Awaited<ReturnType<typeof getCart>>)
-    : null;
+  // Don't fetch cart on the server here to keep this page static.
+  // The client component will fetch the cart via `/api/cart` when needed.
+  const serializableCart = null;
 
   return (
     <div className="mx-auto max-w-[95vw] p-5">

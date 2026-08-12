@@ -1,9 +1,9 @@
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Zyntra";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "BLUE";
 export const APP_NAME_SECOND =
-  process.env.NEXT_PUBLIC_APP_NAME_SECOND || "Shop";
+  process.env.NEXT_PUBLIC_APP_NAME_SECOND || "LILLY";
 export const APP_DESCRIPTION =
   process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
-  "Zyntra Shop - Your One-Stop Online Store";
+  'BLUE LILLY - "Für Momente, die bleiben."';
 
 export const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";

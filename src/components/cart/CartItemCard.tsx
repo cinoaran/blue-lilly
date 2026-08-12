@@ -34,10 +34,12 @@ type Item = CartWithItems["items"][number];
 
 export default function CartItemCard({
   item,
+  mode,
   onQuantityChange,
   onRemove,
 }: {
   item: Item;
+  mode: "vertical" | "horizontal";
   onQuantityChange?: (itemId: string, quantity: number) => void;
   onRemove?: (itemId: string) => void;
 }) {
@@ -82,26 +84,18 @@ export default function CartItemCard({
 
   if (removed) return null;
 
-  console.log("CartItemCard item:", item);
-
   return (
-    <div className="flex flex-col gap-4 items-center justify-center">
-      <div className="flex flex-col items-center gap-2 font-medium">
-        <span>{item.option?.variant?.product?.name ?? "Produkt"}</span>
-        <span className="text-sm text-muted-foreground">
-          Größe: {item.option?.variant?.size ?? "-"}
-        </span>
-      </div>
-      <div className="text-sm">
-        Preis pro Stck.: {displayPrice ? `${String(displayPrice)} €` : "n/a"}
-      </div>
-      <div className="w-26 h-26 relative bg-muted rounded overflow-hidden">
+    <div
+      className={`flex items-center ${mode === "vertical" ? "flex-col items-center justify-center p-1 gap-2 w-[90%]" : "flex-col bg-card lg:flex-row justify-between w-full p-2 rounded-md gap-4"}`}
+    >
+      {/* Image */}
+      <div className="size-36 relative bg-muted rounded overflow-hidden shrink-0">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={item.option?.variant?.product?.name ?? "Produkt"}
             fill
-            sizes="80px"
+            sizes="(max-width: 640px) 80px, 160px"
             className="object-cover"
           />
         ) : (
@@ -111,62 +105,78 @@ export default function CartItemCard({
         )}
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="mt-2 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="default"
-              onClick={() => updateQuantity(quantity - 1)}
-              disabled={updating || deleting || quantity <= 1}
-            >
-              -
-            </Button>
-            <div className="px-3">{quantity}</div>
-            <Button
-              size="sm"
-              variant="default"
-              onClick={() => updateQuantity(quantity + 1)}
-              disabled={
-                updating ||
-                deleting ||
-                (Number.isFinite(available) ? quantity >= available : false)
-              }
-            >
-              +
-            </Button>
+      {/* Left details */}
+      <div className="flex flex-col gap-3 w-[90%]">
+        <div className="font-medium text-center lg:text-left">
+          {item.option?.variant?.product?.name ?? "Produkt"}
+        </div>
+        <div className="flex items-center justify-between gap-2 border-b-[0.3px] border-border border-dotted p-2">
+          <div className="text-sm text-muted-foreground">Größe</div>
+          <div className="text-sm text-muted-foreground">
+            {item.option?.variant?.size ?? "-"}
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-b-[0.3px] border-border border-dotted p-2">
+          <div className="text-sm">Preis</div>
+          <div className="font-medium">
+            {displayPrice ? `${String(displayPrice)} €` : "n/a"}
           </div>
         </div>
       </div>
-      {Number.isFinite(available) && (
-        <div className="text-xs text-muted-foreground mt-1">
-          {quantity >= available
-            ? `Nur ${available} verfügbar`
-            : `Verfügbar: ${available}`}
-        </div>
+      {mode === "vertical" && (
+        <div className="border-t border-border w-full my-1" />
       )}
 
-      <div>
-        <Button
-          size="sm"
-          variant="default"
-          disabled={deleting || updating}
-          onClick={() => {
-            onRemove?.(item.id);
-            setDeleting(true);
-            removeCartItem(item.id)
-              .then(() => {
-                setRemoved(true);
-                router.refresh();
-              })
-              .catch(() => {
-                /* noop */
-              })
-              .finally(() => setDeleting(false));
-          }}
-        >
-          {deleting ? "Lösche…" : "Produkt entfernen"}
-        </Button>
+      {/* Right: counter + remove */}
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div>Menge wechseln</div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => updateQuantity(quantity - 1)}
+            disabled={updating || deleting || quantity <= 1}
+          >
+            -
+          </Button>
+          <div className="px-3">{quantity}</div>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => updateQuantity(quantity + 1)}
+            disabled={
+              updating ||
+              deleting ||
+              (Number.isFinite(available) ? quantity >= available : false)
+            }
+          >
+            +
+          </Button>
+        </div>
+
+        <div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-sm"
+            disabled={deleting || updating}
+            onClick={() => {
+              onRemove?.(item.id);
+              setDeleting(true);
+              removeCartItem(item.id)
+                .then(() => {
+                  setRemoved(true);
+                  router.refresh();
+                })
+                .catch(() => {
+                  /* noop */
+                })
+                .finally(() => setDeleting(false));
+            }}
+          >
+            {deleting ? "Lösche…" : "Produkt entfernen"}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -20,9 +20,14 @@ export function NavbarCartClient({children, initialCart}: Props) {
   const count =
     initialCart?.items?.reduce((sum, it) => sum + (it.quantity ?? 0), 0) ?? 0;
 
+  // Rely on server-provided `initialCart`. For guests the server will include the cart
+  // when the HttpOnly `cartId` cookie is sent with the request.
+  const showBadge = Boolean(initialCart && initialCart.status === "ACTIVE");
+  const badgeCount = showBadge ? count : 0;
+
   return (
     <>
-      <ShoppingCartButton onClick={() => setOpen(true)} count={count} />
+      <ShoppingCartButton onClick={() => setOpen(true)} count={badgeCount} />
 
       <CartSheet open={open} onOpenChange={setOpen}>
         {children}

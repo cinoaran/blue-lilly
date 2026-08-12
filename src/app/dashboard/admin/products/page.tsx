@@ -1,4 +1,5 @@
 import React from "react";
+export const dynamic = "force-dynamic";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {DataTable} from "@/app/dashboard/_components/DataTable";

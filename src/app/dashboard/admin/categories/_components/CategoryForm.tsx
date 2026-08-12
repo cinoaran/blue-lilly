@@ -10,7 +10,7 @@ import {NativeSelect, NativeSelectOption} from "@/components/ui/native-select";
 import {
   buildCategoryTree,
   getCategoryDescendantIds,
-} from "@/helpers/category/categoryTree";
+} from "@/lib/category/categoryTree";
 import {Category} from "@/types/category/category";
 
 const CategorySchema = z.object({

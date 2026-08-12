@@ -6,7 +6,7 @@ import {Search} from "lucide-react";
 import {useSearchParams, useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button";
 import CategorySelect from "@/components/shared/category-select";
-import {SearchOption} from "@/helpers/category/searchOptions";
+import {SearchOption} from "@/lib/category/categoryTree";
 
 type SearchInputProps = {
   defaultQuery?: string;

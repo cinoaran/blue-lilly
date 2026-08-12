@@ -3,7 +3,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {AddToCartForm} from "@/components/cart/add-to-card-form";
+import {AddToCartForm} from "@/components/cart/AddToCartForm";
 import {useSearchParams} from "next/navigation";
 
 import {ProductWithCategoryAndVariants} from "@/types/product/product";
@@ -107,18 +107,46 @@ const ProductDetail = ({
     return options.find((o) => o.id === paramsOptionId) ?? options[0];
   }, [displayVariant, selectedOptionId, paramsOptionId]);
 
-  // Build a map of optionId -> quantity already in cart
+  // If no initialCart was provided from the server, fetch it client-side.
+  const [clientCart, setClientCart] = useState<Cart | null | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    // If server provided a non-null cart, don't fetch. Otherwise fetch.
+    if (initialCart != null) return; // server provided cart
+    let canceled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/cart");
+        if (!res.ok) return setClientCart(null);
+        const json = await res.json();
+        if (canceled) return;
+        setClientCart(json?.cart ?? null);
+      } catch (e) {
+        if (canceled) return;
+        console.error("Failed to fetch cart:", e);
+        setClientCart(null);
+      }
+    })();
+    return () => {
+      canceled = true;
+    };
+  }, [initialCart]);
+
+  // Build a map of optionId -> quantity already in cart (server or client)
   const cartQtyMap = useMemo(() => {
     const m = new Map<string, number>();
-    if (!initialCart || !initialCart.items) return m;
-    for (const it of initialCart.items) {
+    const activeCart = (initialCart ?? clientCart ?? null) as Cart | null;
+    if (!activeCart || !activeCart.items) return m;
+    for (const it of activeCart.items) {
       const optId = it.optionId ?? it.optionId;
       if (!optId) continue;
       const prev = m.get(optId) ?? 0;
       m.set(optId, prev + (Number(it.quantity) || 0));
     }
     return m;
-  }, [initialCart]);
+  }, [initialCart, clientCart]);
 
   const [activeImages, setActiveImages] = useState<string[]>(() =>
     activeOption?.image && activeOption.image.length

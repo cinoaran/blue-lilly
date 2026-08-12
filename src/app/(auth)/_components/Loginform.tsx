@@ -19,13 +19,12 @@ import FormSuccess from "@/components/shared/authComponent/FormSuccess";
 import {useState} from "react";
 import {useSearchParams} from "next/navigation";
 import Spinner from "@/components/Loader/Spinner";
-import {authClient} from "@/lib/auth-client";
-import {useRouter} from "next/navigation";
+import {authClient} from "@/lib/auth/auth-client";
 import {ErrorContext} from "@better-fetch/fetch";
 
 const Loginform = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
+
   const urlError =
     searchParams.get("error") === "OAuthAccountNotLinked"
       ? "Another account already exists, please use previous account"
@@ -46,29 +45,30 @@ const Loginform = () => {
   const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
     setError("");
     setSuccess("");
-    await authClient.signIn.email(
+    // Trigger pending state immediately so spinner shows before a navigation
+    setIsPending(true);
+
+    // Fire sign-in; don't await so the onSuccess callback can redirect immediately
+    authClient.signIn.email(
       {
         email: data.email,
         password: data.password,
       },
       {
         onRequest: () => {
+          // keep as a safeguard if authClient calls this
           setIsPending(true);
         },
         onSuccess: () => {
-          setSuccess("Login successful, redirecting...");
-          setTimeout(() => {
-            setSuccess(""); // Hide the message after 3 seconds
-            router.push("/");
-            router.refresh();
-          }, 3000);
+          setIsPending(true);
+          window.location.href = "/api/auth/post-login";
         },
         onError: (ctx: ErrorContext) => {
           setError(ctx.error.message ?? "Something went wrong.");
+          setIsPending(false);
         },
       },
     );
-    setIsPending(false);
   };
 
   return (
@@ -139,7 +139,7 @@ const Loginform = () => {
           className="rounded-md w-full bg-primary text-primary-foreground text-sm md:text-md cursor-pointer py-6 mt-5 animate-in transition-all duration-200 ease-in-out hover:shadow-sm shadow-sm hover:shadow-accent-foreground/50 focus-visible:ring-2 focus-visible:ring-link focus-visible:ring-offset-2 focus-visible:ring-offset-background uppercase"
         >
           {isPending || !form.formState.isValid ? "Waiting..." : "Login now"}
-          {form.formState.isSubmitting && <Spinner />}
+          {isPending && <Spinner />}
         </Button>
       </form>
     </Form>

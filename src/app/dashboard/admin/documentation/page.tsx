@@ -1,4 +1,5 @@
 import React from "react";
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 export default async function DokumentationPage() {
@@ -15,6 +16,64 @@ export default async function DokumentationPage() {
           <Link href="/src/acl/acl.ts"> src/acl/acl.ts</Link> organisiert sind
           und wie Actions und Pages diese Hilfen verwenden sollten.
         </p>
+      </section>
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold">Stripe Integration</h2>
+        <p className="mt-2">Kurzüberblick und Orte im Repo.</p>
+        <ul className="list-disc pl-6 mt-2">
+          <li>
+            Zentraler Client & Helpers:{" "}
+            <Link href="/src/lib/Stripe/stripe.ts">
+              src/lib/Stripe/stripe.ts
+            </Link>
+          </li>
+          <li>
+            Checkout‑Service (Order → Stripe → Order update):{" "}
+            <Link href="/src/lib/Stripe/stripe-checkout.ts">
+              src/lib/Stripe/stripe-checkout.ts
+            </Link>
+          </li>
+          <li>
+            Webhook handling (verifiziertes Event → Order status update):{" "}
+            <Link href="/src/lib/Stripe/stripe-webhook.ts">
+              src/lib/Stripe/stripe-webhook.ts
+            </Link>{" "}
+            and{" "}
+            <Link href="/app/api/webhooks/stripe/route.ts">
+              app/api/webhooks/stripe/route.ts
+            </Link>
+          </li>
+        </ul>
+
+        <h3 className="font-medium mt-3">Wichtige Env‑Variablen</h3>
+        <ul className="list-disc pl-6">
+          <li>
+            `STRIPE_SECRET_KEY` oder `STRIPE_API_KEY` — serverseitiger Secret
+            Key
+          </li>
+          <li>`STRIPE_WEBHOOK_SECRET` — für Webhook‑Verifikation</li>
+          <li>`NEXT_PUBLIC_APP_URL` — für success/cancel URLs</li>
+        </ul>
+
+        <h3 className="font-medium mt-3">Empfehlungen</h3>
+        <ul className="list-disc pl-6">
+          <li>
+            Der `stripe.ts`-Client ist die einzige Stelle, die den Secret Key
+            liest — nutze ihn überall wiederverwendbar.
+          </li>
+          <li>
+            Halte Business‑Logik (Order/Cart) getrennt von Stripe‑Helpers;
+            Services wie `stripe-checkout.ts` orchestrieren beides.
+          </li>
+          <li>
+            Webhook‑Handler sollten nur idempotente DB‑Updates durchführen (z.
+            B. Order.status ändern), keine komplexen Cart‑Flows.
+          </li>
+          <li>
+            Test: Lokales Stripe CLI/Webhook Replay verwenden und ein
+            Integrationstest für `checkout → webhook` einrichten.
+          </li>
+        </ul>
       </section>
 
       <section className="mb-6">
