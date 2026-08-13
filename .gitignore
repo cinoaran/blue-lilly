@@ -32,7 +32,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-.env.local
 
 # Better-Auth
 **/better-auth.db
@@ -47,7 +46,14 @@ next-env.d.ts
 /src/generated/prisma
 
 # Textdateien, die mit .txt enden
-.txt*
+*.txt
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# temp / payload
+tmp_payload.json
 
 #CHANGES.md
 CHANGES.md
