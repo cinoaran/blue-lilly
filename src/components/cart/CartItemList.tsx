@@ -36,13 +36,13 @@ export function CartItemList({items, mode = "horizontal"}: Props) {
       className={
         mode === "horizontal"
           ? "flex flex-col gap-4 "
-          : "flex flex-col items-center gap-3 w-[90%] bg-card/80 border-[0.3px] border-border"
+          : "flex flex-col items-center justify-center gap-3 w-full bg-card/80"
       }
     >
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex flex-col md:flex-row gap-4 rounded-lg text-sm md:text-md p-1 md:p-1"
+          className="flex flex-col md:flex-row gap-4 rounded-lg text-sm md:text-md p-1"
         >
           <CartItemCard item={item} mode={mode as "vertical" | "horizontal"} />
         </div>

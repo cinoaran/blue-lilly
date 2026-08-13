@@ -13,6 +13,8 @@ import type {
   Variant,
   Product,
 } from "@/generated/prisma/browser";
+import Link from "next/link";
+import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip";
 
 type CartWithItems = Cart & {
   items: (CartItem & {
@@ -54,6 +56,29 @@ export default function CartItemCard({
     item.option?.variant?.product?.variants?.[0]?.id ??
     null;
 
+  function slugify(str: string) {
+    return String(str)
+      .toLowerCase()
+      .trim()
+      .replace(/['"]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-]+/g, "-")
+      .replace(/\-+/g, "-")
+      .replace(/^\-+|\-+$/g, "");
+  }
+
+  const productName =
+    item.option?.variant?.product?.name ??
+    item.option?.variant?.product?.id ??
+    "";
+  const params = new URLSearchParams();
+  if (item.option?.variant?.size)
+    params.set("size", String(item.option?.variant?.size));
+  if (item.option?.id) params.set("optionId", item.option.id);
+  const productHref = `/product/${slugify(productName)}${
+    params.toString() ? `?${params.toString()}` : ""
+  }`;
+
   // Determine price: prefer stored cart item unitPrice, fall back to option's sellPrice
   const displayPrice = item.unitPrice ?? item.option?.sellPrice ?? null;
 
@@ -86,28 +111,46 @@ export default function CartItemCard({
 
   return (
     <div
-      className={`flex items-center ${mode === "vertical" ? "flex-col items-center justify-center p-1 gap-2 w-[90%]" : "flex-col bg-card lg:flex-row justify-between w-full p-2 rounded-md gap-4"}`}
+      className={`flex items-center ${mode === "vertical" ? "flex-col items-center justify-center gap-2 border-[0.3px] border-border w-full px-12 py-6" : "flex-col bg-card lg:flex-row justify-between w-full p-2 rounded-md gap-4"}`}
     >
       {/* Image */}
-      <div className="size-36 relative bg-muted rounded overflow-hidden shrink-0">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={item.option?.variant?.product?.name ?? "Produkt"}
-            fill
-            sizes="(max-width: 640px) 80px, 160px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-sm text-muted-foreground">
-            Bild
+      <div className="size-42 relative overflow-hidden">
+        <Tooltip>
+          <Link
+            href={productHref || ""}
+            className="block w-full h-full relative"
+          >
+            <TooltipTrigger asChild>
+              <Image
+                src={imageUrl || "/images/placeholder.png"}
+                alt={item.option?.variant?.product?.name ?? "Produkt"}
+                fill
+                sizes="(max-width: 640px) 96px, 192px"
+                className="object-contain"
+              />
+            </TooltipTrigger>
+          </Link>
+
+          <TooltipContent side="bottom" align="center" sideOffset={1}>
+            Zurück zur Produktübersicht
+          </TooltipContent>
+        </Tooltip>
+        {!imageUrl && (
+          <div className="w-full h-full bg-transparent flex items-center justify-center text-sm text-muted-foreground">
+            <Image
+              src={"/images/placeholder.png"}
+              alt={item.option?.variant?.product?.name ?? "Produkt"}
+              fill
+              sizes="(max-width: 640px) 96px, 192px"
+              className="object-contain"
+            />
           </div>
         )}
       </div>
 
       {/* Left details */}
-      <div className="flex flex-col gap-3 w-[90%]">
-        <div className="font-medium text-center lg:text-left">
+      <div className="flex flex-col gap-3 w-full">
+        <div className="font-medium text-center">
           {item.option?.variant?.product?.name ?? "Produkt"}
         </div>
         <div className="flex items-center justify-between gap-2 border-b-[0.3px] border-border border-dotted p-2">
@@ -123,9 +166,7 @@ export default function CartItemCard({
           </div>
         </div>
       </div>
-      {mode === "vertical" && (
-        <div className="border-t border-border w-full my-1" />
-      )}
+      {mode === "vertical" && <div className="w-full my-1" />}
 
       {/* Right: counter + remove */}
       <div className="flex flex-col items-center justify-center gap-4">
@@ -157,7 +198,7 @@ export default function CartItemCard({
         <div>
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             className="text-sm"
             disabled={deleting || updating}
             onClick={() => {

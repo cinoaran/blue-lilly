@@ -95,7 +95,7 @@ export default function ShippingAddressClient({
   }
 
   return (
-    <div>
+    <div className="bg-card/80 rounded-md p-2 flex flex-col gap-4">
       {error && <div className="text-destructive text-sm mb-2">{error}</div>}
       <ShippingAddress
         addresses={addresses}

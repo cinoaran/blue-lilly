@@ -185,34 +185,35 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
   };
 
   return (
-    <Card className="flex flex-col items-center justify-center rounded-md hover:scale-101 p-0 hide-scrollbar">
-      <CardContent className="p-0 w-full flex-1">
+    <Card className="flex flex-col items-center justify-center rounded-md hover:scale-101 hide-scrollbar transition-transform duration-300">
+      <CardContent className="w-full flex-1">
         {/*Image & Preis*/}
         <Link href={href}>
-          <div className="relative aspect-6/5 overflow-hidden bg-white rounded-br-0 rounded-bl-0 rounded-tr-md rounded-tl-md border-b border-border">
+          <div className="bg-white relative aspect-5/6 rounded-t-2xl overflow-hidden my-2">
             <Image
               src={displayedImage}
               alt={altText}
               fill
               sizes="(min-width: 768px) 70vw, 50vw"
-              className={`object-contain hover:scale-105 transition-transform duration-300 ${
+              className={`object-contain w-full h-full hover:scale-105 transition-transform duration-300 ${
                 isFading ? "opacity-0" : "opacity-100"
               }`}
             />
 
-            <div className="absolute bottom-4 right-4 flex items-center gap-0 overflow-hidden rounded-md bg-primary/50">
-              <span className="rounded-l-md bg-primary px-3 py-2 text-sm font-medium uppercase text-accent-foreground">
+            <div className="absolute bottom-4 right-4 flex items-center gap-3 bg-primary px-3 py-1 text-white text-sm overflow-hidden rounded-md">
+              <span className="rounded-l-md font-medium uppercase">
                 {label}
               </span>
-              <span className="rounded-r-md bg-primary px-3 py-2 font-bold text-accent-foreground">
+              <span className="rounded-r-md font-medium uppercase">
                 {formatPrice(
                   Number.isFinite(activePriceNum) ? activePriceNum : 0,
                 ) ?? "N/A"}
               </span>
             </div>
           </div>
+          <hr className="border-t-[0.3px] border-border" />
           {/* Name & Brand: fixed area so cards align when names wrap */}
-          <div className="px-3 mt-4 w-full flex-1">
+          <div className="px-3 mt-3 w-full flex-1">
             <div className="min-h-16 flex items-start">
               <h2 className="text-lg font-semibold">
                 {product.brand} {product.name}
@@ -233,15 +234,14 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
             </div>
           </div>
         </Link>
-
-        <CardFooter className="flex flex-col items-start justify-start gap-1 py-5 border-t-[0.3px] border-border w-full">
+        <hr className="border-t-[0.3px] border-border" />
+        <CardFooter className="flex flex-col items-start justify-start gap-1 py-4">
           {/* Size pill selector: horizontal slider with side chevrons */}
           <div className="w-full mb-2">
             <div className="relative">
               {showChevrons && (
                 <>
                   <Button
-                    variant="default"
                     type="button"
                     aria-label="Previous sizes"
                     title="Previous sizes"
@@ -252,7 +252,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                     }}
                     disabled={!canScrollPrev}
                     aria-disabled={!canScrollPrev}
-                    className={`absolute -left-6 top-1/2 -translate-y-1/2 z-10 w-7 h-8 bg-primary border-0 flex items-center justify-center rounded-md hover: ${
+                    className={`absolute -left-6 top-1/2 -translate-y-1/2 z-10 w-7 h-8 bg-primary flex items-center justify-center rounded-md hover: ${
                       !canScrollPrev
                         ? "opacity-40 pointer-events-none"
                         : "bg-primary/30"
@@ -262,7 +262,6 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                   </Button>
 
                   <Button
-                    variant="default"
                     type="button"
                     aria-label="Next sizes"
                     title="Next sizes"
@@ -273,7 +272,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                     }}
                     disabled={!canScrollNext}
                     aria-disabled={!canScrollNext}
-                    className={`absolute -right-6 top-1/2 -translate-y-1/2 w-7 h-8 bg-primary/30 outline-none flex items-center justify-center rounded-md hover: ${
+                    className={`absolute -right-6 top-1/2 -translate-y-1/2 w-7 h-8 bg-primary outline-none flex items-center justify-center rounded-md hover: ${
                       !canScrollNext
                         ? "opacity-10 pointer-events-none"
                         : "bg-primary"
@@ -298,10 +297,10 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                     <Button
                       key={key}
                       type="button"
-                      className={`shrink-0 snap-start w-26 h-8 flex items-center px-3 rounded-md border text-[0.6rem] font-medium transition ${
+                      className={`snap-start flex items-center w-18 h-7 py-0 px-5 rounded-md font-medium transition ${
                         isActive
-                          ? "bg-primary text-accent-foreground  hover:bg-primary/90"
-                          : "bg-primary/40 hover:bg-primary text-white/90 hover:text-accent-foreground"
+                          ? "bg-primary"
+                          : "bg-primary/30 hover:bg-primary/20"
                       }`}
                       onClick={() => selectVariant(v)}
                     >
@@ -326,7 +325,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                 <Button
                   key={opt.id}
                   type="button"
-                  className={`relative aspect-5/6 size-15 rounded-md border bg-transparent transition-all duration-200 ${isOptActive ? "ring-2 ring-primary" : ""}`}
+                  className={`relative aspect-5/6 size-15 rounded-md bg-transparent transition-all duration-200 ${isOptActive ? "ring-2 ring-primary" : ""}`}
                   onClick={() => {
                     setIsFading(true);
                     setTimeout(() => {
@@ -353,7 +352,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
                     alt={`${product.name ?? altText} ${chosenSize ?? ""} ${opt.id}`}
                     fill
                     sizes="(min-width: 768px) 25vw, 33vw"
-                    className="object-cover p-1 transition-transform duration-200 hover:scale-105"
+                    className="object-cover p-1 transition-transform duration-200 hover:scale-105 rounded-md"
                   />
                 </Button>
               );

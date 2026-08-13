@@ -1,5 +1,6 @@
 import {createUploadthing, type FileRouter} from "uploadthing/next";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 
 const f = createUploadthing();
 
@@ -9,7 +10,8 @@ export const ourFileRouter = {
     video: {maxFileSize: "2GB", maxFileCount: 2},
   })
     .middleware(async ({req}) => {
-      const session = await auth.api.getSession({headers: req.headers});
+      // Use short-lived dedupe cache to avoid repeated auth.api.getSession calls
+      const session = await getSessionOnce({headers: req.headers});
       if (!session?.user?.id) throw new Error("Unauthorized");
       return {userId: session.user.id};
     })
@@ -24,7 +26,7 @@ export const ourFileRouter = {
     image: {maxFileSize: "4MB", maxFileCount: 1},
   })
     .middleware(async ({req}) => {
-      const session = await auth.api.getSession({headers: req.headers});
+      const session = await getSessionOnce({headers: req.headers});
       if (!session?.user?.id) throw new Error("Unauthorized");
       return {userId: session.user.id};
     })

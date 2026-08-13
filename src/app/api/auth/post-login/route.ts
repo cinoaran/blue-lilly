@@ -1,4 +1,5 @@
 import {auth, type Session} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {mergeAnonymousCartIntoUserCart} from "@/lib/cart/mergeAnonymousCartIntoUserCart";
 import {NextRequest, NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   let session: Session | null = null;
   try {
     // Use incoming request headers to resolve the correct session
-    session = await auth.api.getSession({
+    session = await getSessionOnce({
       headers: request.headers as Headers,
     });
     const userId = session?.user?.id;

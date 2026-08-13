@@ -1,6 +1,7 @@
 import {cookies, headers} from "next/headers";
 import prisma from "@/lib/prisma";
 import {auth} from "@/lib/auth/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import type {
   Cart,
   CartItem,
@@ -41,7 +42,7 @@ export async function getCart(): Promise<CartWithItems | null> {
     string,
     string
   >;
-  const session = await auth.api.getSession({headers: headerObj});
+  const session = await getSessionOnce({headers: headerObj});
 
   const userId = session?.user?.id ?? null;
 

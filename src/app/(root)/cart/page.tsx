@@ -3,13 +3,14 @@ import {getCart} from "@/actions/cart/getCarts";
 import Link from "next/link";
 import CartClient from "@/components/cart/CartClientWrapper";
 import formatPrice from "@/helpers/products/formatPrice";
-import {Euro, Sigma, Truck} from "lucide-react";
+import {ChevronLeft, Euro, Sigma, Truck} from "lucide-react";
 import ShippingAddressClient from "@/components/checkout/ShippingAddressClient";
 import prisma from "@/lib/prisma";
 import type {Address} from "@/generated/prisma/browser";
 import {convertDecimalToNumber} from "@/helpers";
 import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 
 export default async function CartPage() {
   const cart = await getCart();
@@ -76,7 +77,7 @@ export default async function CartPage() {
 
   // Get session and addresses server-side so we can pass login state to client
   const hdrs = await headers();
-  const session = await auth.api.getSession({headers: hdrs});
+  const session = await getSessionOnce({headers: hdrs});
   const userId = session?.user?.id ?? null;
   const addrs = userId ? await prisma.address.findMany({where: {userId}}) : [];
   const serializableAddresses = convertDecimalToNumber(addrs) as typeof addrs;
@@ -102,17 +103,26 @@ export default async function CartPage() {
           ) : (
             <div className="flex-2 flex flex-col gap-4">
               <CartClient items={serializableItems} />
+              <div className="my-3 text-left">
+                <Link
+                  href="/"
+                  className="py-2 text-md text-muted-foreground underlined"
+                >
+                  <ChevronLeft size={18} className="inline-block mr-1" />
+                  Weiter einkaufen
+                </Link>
+              </div>
             </div>
           )}
         </div>
         <div className="md:col-span-2">
           {items.length > 0 && (
             <aside className="border-[0.3px] border-border rounded w-full p-1">
-              <div className="flex flex-col gap-4 bg-card/80 rounded-md p-2">
+              <div className="flex flex-col gap-4 bg-card/80 rounded-md py-6 px-4 md:px-6">
                 <h3 className="text-sm md:text-lg font-medium mb-4">
                   Übersicht (alle Preise inkl. MwSt.)
                 </h3>
-                <div className="flex items-center justify-between gap-2 mb-4 text-xs md:text-md">
+                <div className="flex items-center justify-between gap-2 mb-4 text-md">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Euro className="bg-background/20 p-1 border-[0.3px] border-border text-foreground rounded-sm inline-block" />
                     Summe
@@ -120,7 +130,7 @@ export default async function CartPage() {
                   <div className="font-medium">{formatPrice(subtotal)}</div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 mb-4 text-xs md:text-md">
+                <div className="flex items-center justify-between gap-2 mb-4 text-md">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Truck className="bg-background/20 p-1 border-[0.3px] border-border text-foreground rounded-sm inline-block" />
                     Versand
@@ -129,7 +139,7 @@ export default async function CartPage() {
                 </div>
 
                 <hr className="border-t-[0.3px] border-border pt-4 mt-4" />
-                <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 mb-4 text-xs md:text-md">
+                <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-2 mb-4 text-md">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Sigma className="bg-background/20 p-1 border-[0.3px] border-border text-foreground rounded-sm inline-block" />
                     Gesamt inkl. MwSt.
@@ -137,14 +147,6 @@ export default async function CartPage() {
                   <div className="font-semibold">{formatPrice(total)}</div>
                 </div>
                 <hr className="border-t-[0.3px] border-border pt-4 mt-4" />
-                <div className="my-3 text-center">
-                  <Link
-                    href="/"
-                    className="py-2 px-3 md:px-5 border-[0.3px] border-border rounded-md text-xs text-muted-foreground underlined"
-                  >
-                    Weiter einkaufen
-                  </Link>
-                </div>
 
                 <div className="mt-4">
                   {/* Fetch server-side addresses and pass to client wrapper */}

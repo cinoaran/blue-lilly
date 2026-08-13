@@ -18,7 +18,7 @@ export function ModeToggle() {
     // Render nothing or a placeholder during SSR
     return (
       <div className="flex flex-col items-center justify-center cursor-pointer">
-        <div className="flex items-center justify-center icon ring-1 transition-colors duration-200 ease-in-out cursor-pointer z-10">
+        <div className="flex items-center justify-center transition-colors duration-200 ease-in-out cursor-pointer z-10">
           <Tooltip>
             <TooltipTrigger asChild>
               <Lightbulb
@@ -37,7 +37,7 @@ export function ModeToggle() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center cursor-pointer">
+    <div className="flex flex-col items-center justify-center ring-2 ring-white rounded-full text-white cursor-pointer">
       <Tooltip>
         <TooltipTrigger asChild>
           {theme === "dark" ? (
@@ -45,7 +45,7 @@ export function ModeToggle() {
               onClick={() => setTheme("light")}
               className="flex flex-col items-center justify-center"
             >
-              <span className="flex items-center justify-center icon ring-1 transition-colors duration-200 ease-in-out cursor-pointer z-10">
+              <span className="flex items-center justify-center icon transition-colors duration-200 ease-in-out cursor-pointer z-10">
                 <Lightbulb
                   size={24}
                   className="aspect-square rotate-180 hover:scale-95"

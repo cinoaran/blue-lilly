@@ -3,6 +3,7 @@
 import {redirect} from "next/navigation";
 import {headers} from "next/headers";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {createStripeCheckout} from "@/lib/Stripe/orders";
 
 type CreateCheckoutActionInput = {
@@ -15,7 +16,7 @@ export async function createCheckoutAction({
   billingAddressId,
 }: CreateCheckoutActionInput) {
   const hdrs = await headers();
-  const session = await auth.api.getSession({headers: hdrs});
+  const session = await getSessionOnce({headers: hdrs});
 
   if (!session?.user?.id) {
     throw new Error("Not authenticated");

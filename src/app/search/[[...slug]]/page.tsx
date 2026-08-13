@@ -151,7 +151,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
             )}
           </div>
         ) : (
-          <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[80vw] md:w-[90vw">
+          <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] md:w-[95vw]">
             {safeProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -186,7 +186,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
       <div className="flex items-center justify-start mb-10">
         <Breadcrumbs items={breadcrumbs} />
       </div>
-      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)]">
+      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md">
         <Suspense
           fallback={
             <div className="flex items-start justify-start gap-4 mb-4">
@@ -195,7 +195,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
             </div>
           }
         >
-          <h3 className="w-full text-left font-thin text-4xl p-6 text-foreground drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)] z-0">
+          <h3 className="w-full text-left font-thin text-4xl p-6 text-foreground">
             Filter Products {categoryLabel && `in ${categoryLabel}`}
           </h3>
           <div className="flex flex-col sm:flex-row items-center justify-between mx-auto gap-10 mb-10 w-[65vw]">

@@ -123,15 +123,16 @@ const SearchInput = ({
             <Input
               type="search"
               placeholder="Schnellsuche Outdoor, Jacken, Schuhe, etc."
-              className={`webkit-search-cancel-button:appearance-none overflow-hidden border border-border bg-background px-3 py-2 text-base text-foreground ring-[0.3px] ring-inset ring-black shadow-none data-placeholder:italic data-placeholder:text-foreground/50 ${
+              className={`webkit-search-cancel-button:appearance-none overflow-hidden border rounded-md px-3 py-3 text-base text-foreground inset-0 border-primary/35 shadow-none data-placeholder:italic data-placeholder:text-foreground/50 ${
                 isPending ? "opacity-50 pointer-events-none" : ""
               }`}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <Button
+              variant="default"
               type="submit"
-              className="flex h-9 w-10 items-center justify-center rounded-md bg-primary text-white hover:scale-105 transition-transform"
+              className="flex justify-center hover:scale-105 transition-transform"
             >
               <Search size={20} />
             </Button>

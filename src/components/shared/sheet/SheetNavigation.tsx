@@ -8,6 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip";
 import {LayoutDashboardIcon, Menu, PenBoxIcon, UserPlus} from "lucide-react";
 import Main from "../nav";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -25,39 +26,61 @@ export function SheetNavigation({session}: {session: Session | null}) {
 
   return (
     <Sheet modal={true} /*open={true}*/ data-slot="sheet-navigation">
-      <SheetTrigger asChild aria-description="Navigation Trigger">
-        <div
-          className="flex items-center justify-center icon ring-1 transition-colors duration-200 ease-in-out cursor-pointer z-10"
-          aria-label="Open Navigation"
-        >
-          {userLoggedIn ? (
-            <Avatar
-              size="lg"
-              className="flex items-center justify-center transition-colors duration-200 ease-in-out cursor-pointer z-10"
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SheetTrigger asChild aria-description="Navigation Trigger">
+            <div
+              className="flex items-center justify-center icon ring-2 transition-colors duration-200 ease-in-out cursor-pointer z-10"
+              aria-label="Open Navigation"
             >
-              <AvatarImage
-                src={user?.image || "/avatar/placeholder-avatar.svg"}
-                alt="User profile image"
-                className="aspect-square object-cover hover:scale-95"
-                aria-roledescription="Avatar image"
-              />
+              {userLoggedIn ? (
+                <Avatar
+                  size="lg"
+                  className="flex items-center justify-center transition-colors duration-200 ease-in-out cursor-pointer z-10"
+                >
+                  <AvatarImage
+                    src={user?.image || "/avatar/placeholder-avatar.svg"}
+                    alt="User profile image"
+                    className="aspect-square object-cover hover:scale-95"
+                    aria-roledescription="Avatar image"
+                  />
 
-              <AvatarFallback>
-                <AvatarImage
-                  src="/avatar/placeholder-avatar.svg"
-                  alt="Placeholder Avatar"
-                  className="aspect-square object-cover hover:scale-95"
-                  width={40}
-                  height={40}
-                />
-              </AvatarFallback>
-              <span className="sr-only">User Image</span>
-            </Avatar>
-          ) : (
-            <Menu strokeWidth={2} className="size-5 hover:scale-95" />
-          )}
-        </div>
-      </SheetTrigger>
+                  <AvatarFallback>
+                    <AvatarImage
+                      src="/avatar/placeholder-avatar.svg"
+                      alt="Placeholder Avatar"
+                      className="aspect-square object-cover hover:scale-95"
+                      width={40}
+                      height={40}
+                    />
+                  </AvatarFallback>
+                  <span className="sr-only">User Image</span>
+                </Avatar>
+              ) : (
+                <Menu strokeWidth={2} className="size-5 hover:scale-95" />
+              )}
+            </div>
+          </SheetTrigger>
+        </TooltipTrigger>
+
+        {/* Small screens: align right; from sm up: align center */}
+        <TooltipContent
+          side="bottom"
+          align="right"
+          sideOffset={1}
+          className="sm:hidden"
+        >
+          Navigation öffnen
+        </TooltipContent>
+        <TooltipContent
+          side="bottom"
+          align="center"
+          sideOffset={1}
+          className="hidden sm:block"
+        >
+          Navigation öffnen
+        </TooltipContent>
+      </Tooltip>
       <SheetContent
         aria-description="Navigation Slider"
         side="right"

@@ -87,7 +87,7 @@ export default function ShippingAddressStep({
     setValue,
     setError,
     watch,
-    formState: {errors, isValid},
+    formState: {errors},
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
@@ -262,14 +262,14 @@ export default function ShippingAddressStep({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="rounded-2xl bg-background/10 p-6"
+      className="rounded-2xl bg-background/10 p-3"
     >
       <h2 className="text-lg font-semibold mb-4">Rechnungsadresse</h2>
 
-      <div className="space-y-6">
+      <div className="space-y-10">
         <div className="grid grid-cols-2 gap-2 place-items-center w-full">
           <div className="flex flex-col gap-1 items-center justify-center">
-            <label className="underlined" htmlFor="billing.firstName">
+            <label id="billing.firstName" className="underlined">
               <Input
                 {...register("billing.firstName")}
                 placeholder="Vorname"
@@ -283,7 +283,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.lastName">
+            <label id="billing.lastName" className="underlined">
               <Input
                 {...register("billing.lastName")}
                 placeholder="Nachname"
@@ -297,7 +297,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.company">
+            <label id="billing.company" className="underlined">
               <Input
                 {...register("billing.company")}
                 placeholder="Firma (optional)"
@@ -311,7 +311,7 @@ export default function ShippingAddressStep({
             </label>
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.addressLine1">
+            <label id="billing.addressLine1" className="underlined">
               <Input
                 {...register("billing.addressLine1")}
                 placeholder="Straße"
@@ -325,7 +325,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.addressLine2">
+            <label id="billing.addressLine2" className="underlined">
               <Input
                 {...register("billing.addressLine2")}
                 placeholder="Adresszusatz (optional)"
@@ -339,7 +339,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.postalCode">
+            <label id="billing.postalCode" className="underlined">
               <Input
                 {...register("billing.postalCode")}
                 placeholder="PLZ"
@@ -353,7 +353,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.city">
+            <label id="billing.city" className="underlined">
               <Input
                 {...register("billing.city")}
                 placeholder="Stadt"
@@ -367,7 +367,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.country">
+            <label id="billing.country" className="underlined">
               <Input
                 {...register("billing.country")}
                 placeholder="Land (DE)"
@@ -381,7 +381,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.phone">
+            <label id="billing.phone" className="underlined">
               <Input
                 {...register("billing.phone")}
                 placeholder="Telefon (optional)"
@@ -395,7 +395,7 @@ export default function ShippingAddressStep({
             )}
           </div>
           <div className="flex flex-col gap-1 items-start justify-start">
-            <label className="underlined" htmlFor="billing.email">
+            <label id="billing.email" className="underlined">
               <Input
                 {...register("billing.email")}
                 placeholder="E-Mail (optional)"
@@ -414,7 +414,7 @@ export default function ShippingAddressStep({
           {sameAsBilling ? (
             <button
               type="button"
-              className="ml-2 hover:border-b-[0.3px] hover:text-foreground border-b-[0.3px] underlined"
+              className="ml-2 hover:text-foreground underlined"
               onClick={() => {
                 userToggledSameRef.current = true;
                 setSameAsBilling(false);
@@ -441,7 +441,7 @@ export default function ShippingAddressStep({
           ) : (
             <button
               type="button"
-              className="w-full px-5 text-foreground hover:border-b-[0.3px] hover:text-foreground border-b-[0.3px] underlined"
+              className="w-full px-5 text-foreground hover:text-foreground underlined"
               onClick={() => {
                 userToggledSameRef.current = true;
                 setSameAsBilling(true);
@@ -460,7 +460,7 @@ export default function ShippingAddressStep({
               <h3 className="text-lg font-semibold mb-4">Lieferadresse</h3>
               <div className="grid grid-cols-2 gap-2 place-items-center w-full">
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.firstName">
+                  <label id="shipping.firstName" className="underlined">
                     <Input
                       {...register("shipping.firstName")}
                       placeholder="Vorname"
@@ -475,7 +475,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.lastName">
+                  <label id="shipping.lastName" className="underlined">
                     <Input
                       {...register("shipping.lastName")}
                       placeholder="Nachname"
@@ -490,7 +490,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.company">
+                  <label id="shipping.company" className="underlined">
                     <Input
                       {...register("shipping.company")}
                       placeholder="Firma (optional)"
@@ -505,7 +505,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.addressLine1">
+                  <label id="shipping.addressLine1" className="underlined">
                     <Input
                       {...register("shipping.addressLine1")}
                       placeholder="Straße"
@@ -520,7 +520,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.addressLine2">
+                  <label id="shipping.addressLine2" className="underlined">
                     <Input
                       {...register("shipping.addressLine2")}
                       placeholder="Adresszusatz (optional)"
@@ -535,7 +535,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.postalCode">
+                  <label id="shipping.postalCode" className="underlined">
                     <Input
                       {...register("shipping.postalCode")}
                       placeholder="PLZ"
@@ -550,7 +550,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.city">
+                  <label id="shipping.city" className="underlined">
                     <Input
                       {...register("shipping.city")}
                       placeholder="Stadt"
@@ -565,7 +565,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.country">
+                  <label id="shipping.country" className="underlined">
                     <Input
                       {...register("shipping.country")}
                       placeholder="Land (DE)"
@@ -580,7 +580,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.phone">
+                  <label id="shipping.phone" className="underlined">
                     <Input
                       {...register("shipping.phone")}
                       placeholder="Telefon (optional)"
@@ -595,7 +595,7 @@ export default function ShippingAddressStep({
                   )}
                 </div>
                 <div className="flex flex-col gap-1 items-start justify-start">
-                  <label className="underlined" htmlFor="shipping.email">
+                  <label id="shipping.email" className="underlined">
                     <Input
                       {...register("shipping.email")}
                       placeholder="E-Mail (optional)"
@@ -617,7 +617,7 @@ export default function ShippingAddressStep({
         {/* always show Stripe button and optional guest message below the address forms */}
       </div>
 
-      <div className="my-12 backdrop:blur-sm bg-background/10 p-4">
+      <div className="my-12 backdrop:blur-sm bg-background/40 p-6">
         {!isLoggedIn && (
           <>
             <h3 className="text-left text-lg font-semibold mb-2">

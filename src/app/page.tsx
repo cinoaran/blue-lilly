@@ -42,8 +42,8 @@ export default async function Home(props: {searchParams: SearchParams}) {
       (p) => convertDecimalToNumber(p) as unknown,
     );
     return ((safeProducts as ProductWithVariants[]) || []).length === 0 ? (
-      <div className="w-[85vw] mx-auto flex items-center justify-center py-12">
-        <div className="text-center bg-secondary/50 border border-foreground/10 rounded-md p-6">
+      <div className="max-w-[85vw] mx-auto flex items-center justify-center py-12">
+        <div className="text-center bg-primary rounded-md p-6">
           <h3 className="text-lg font-medium">
             Aktuell befinden sich keine Produkte zur Auswahl
           </h3>
@@ -53,7 +53,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
         </div>
       </div>
     ) : (
-      <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
+      <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-9 mx-auto max-w-[85vw]">
         {(safeProducts as ProductWithVariants[]).map((product, idx) => (
           <ProductCard
             key={`prod-${(product as ProductWithVariants).id ?? (product as ProductWithVariants).slug ?? idx}`}
@@ -69,19 +69,19 @@ export default async function Home(props: {searchParams: SearchParams}) {
   const totalPages = Math.ceil(total / limit); // Math.ceil(total / limit);
 
   return (
-    <main className="container relative mx-auto max-w-[95vw]">
+    <main className="container relative mx-auto max-w-[85vw]">
       <Breadcrumbs items={[{label: "Home", href: "/"}]} />
       <div className="my-10">
         <Suspense
           fallback={
-            <div className="w-full h-137.5 bg-gray-200 animate-pulse rounded-md" />
+            <div className="w-full h-137.5 bg-foreground/30 animate-pulse rounded-md" />
           }
         >
           <HeaderCarousel />
         </Suspense>
       </div>
       <hr className="border-foreground/10 my-12" />
-      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)]">
+      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md">
         <Suspense
           fallback={
             <div className="flex items-start justify-start gap-4 mb-4">
@@ -90,7 +90,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
             </div>
           }
         >
-          <h3 className="w-full text-left font-thin text-4xl  md:text-6xl text-foreground drop-shadow-[0_30px_60px_rgba(0,0,0,0.38)] z-0">
+          <h3 className="w-full text-left font-thin text-4xl  md:text-6xl text-foreground">
             Search Products
           </h3>
           <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-10 z-10">

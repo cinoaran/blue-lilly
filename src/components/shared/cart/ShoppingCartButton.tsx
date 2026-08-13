@@ -27,7 +27,7 @@ const ShoppingCartButton = ({onClick, count = 0}: ShoppingCartButtonProps) => {
 
   return (
     <div
-      className="flex flex-col items-center rounded-full ring-1 ring-white justify-center cursor-pointer"
+      className="flex flex-col items-center ring-2 ring-foreground rounded-full justify-center cursor-pointer"
       aria-label="Warenkorb öffnen"
       onClick={onClick}
     >
@@ -38,7 +38,7 @@ const ShoppingCartButton = ({onClick, count = 0}: ShoppingCartButtonProps) => {
               className={
                 `absolute -top-1 -right-1 w-5 h-5 text-[10px] flex items-center justify-center rounded-full transition-all duration-200 z-11 ` +
                 (count && count > 0
-                  ? "bg-black text-white ring-2 ring-white"
+                  ? "bg-primary text-white ring-2 ring-white"
                   : "bg-muted text-muted-foreground ring-1 ring-white") +
                 (bouncing ? " badge-bounce" : "")
               }
@@ -52,15 +52,15 @@ const ShoppingCartButton = ({onClick, count = 0}: ShoppingCartButtonProps) => {
                 (count && count > 0 ? "text-black" : "text-white")
               }
             >
-              <ShoppingBag size={24} className="w-6 h-6" />
+              <ShoppingBag size={24} className="w-6 h-6 text-white" />
             </span>
           </div>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          <span className="text-muted-foreground">Cart</span>
+          <span className="text-muted-foreground">Warenkorp öffnen</span>
         </TooltipContent>
       </Tooltip>
-      <span className="sr-only">Cart</span>
+      <span className="sr-only">Warenkorp öffnen</span>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {createStripeCheckout} from "@/lib/Stripe/orders";
 import {toStripeAmount} from "@/lib/Stripe/client";
 import {getOrCreateCart} from "@/lib/cart/getOrCreateCart";
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     // Use request headers (API route) instead of next/headers helpers so cookies
     // and auth headers are available in this context.
     const headerObj = Object.fromEntries(req.headers.entries());
-    const session = await auth.api.getSession({headers: headerObj});
+    const session = await getSessionOnce({headers: headerObj});
     const userId = session?.user?.id ?? null;
 
     // Parse cookies from the raw Cookie header on the request

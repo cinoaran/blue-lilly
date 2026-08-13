@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {convertDecimalToNumber} from "@/helpers";
 
 function parseCookies(cookieHeader: string | null) {
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
       string
     >;
 
-    const session = await auth.api.getSession({headers: headerObj});
+    const session = await getSessionOnce({headers: headerObj});
     const userId = session?.user?.id ?? null;
 
     const cookieHeader = req.headers.get("cookie") ?? null;

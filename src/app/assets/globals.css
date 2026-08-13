@@ -12,7 +12,7 @@
 | Voraussetzung: Die Klasse "dark" wird beispielsweise mit next-themes
 | auf dem html-Element gesetzt.
 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* @custom-variant dark (&:where(.dark, .dark *)); */
 
 /*
 |--------------------------------------------------------------------------
@@ -496,7 +496,7 @@
     border-radius: 9999px;
 
     background: var(--brand-ocean);
-    color: var(--primary-foreground);
+    color: white;
   }
 }
 

@@ -1,6 +1,7 @@
 import {cookies, headers} from "next/headers";
 import prisma from "@/lib/prisma";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {mergeGuestCartIntoUserCart} from "@/lib/cart/mergeGuestCart";
 import type {
   Cart,
@@ -55,7 +56,7 @@ async function resolveUserId(inputUserId?: string) {
       string,
       string
     >;
-    const session = await auth.api.getSession({headers: headerObj});
+    const session = await getSessionOnce({headers: headerObj});
     return session?.user?.id ?? null;
   } catch (error) {
     console.log("/getOrCreateCart: session resolution error", String(error));

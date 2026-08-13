@@ -21,6 +21,7 @@ type CartWithItems = Cart & {
   })[];
 };
 import {auth} from "@/lib/auth/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {stripe, toStripeAmount, formatMetadata} from "@/lib/Stripe/client";
 
 const cartInclude = {
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
       string,
       string
     >;
-    const session = await auth.api.getSession({headers: headerObj});
+    const session = await getSessionOnce({headers: headerObj});
     userId = session?.user?.id ?? null;
 
     const cookieStore = await cookies();

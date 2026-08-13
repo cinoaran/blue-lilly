@@ -51,7 +51,9 @@ export function AddToCartForm({
         }`}
       >
         <div className="flex items-center justify-center gap-5">
-          <h4>{pending ? "Wird hinzugefügt..." : "IN DEN WARENKORB"}</h4>
+          <h4 className="text-white">
+            {pending ? "Wird hinzugefügt..." : "IN DEN WARENKORB"}
+          </h4>
           <span className="flex items-center justify-center pl-7 py-2 border-l border-border ">
             {cannotAdd ? (
               <span className="text-red-600 font-bold">

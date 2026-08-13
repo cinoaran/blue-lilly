@@ -2,13 +2,14 @@ import ShippingAddressClient from "@/components/checkout/ShippingAddressClient";
 import prisma from "@/lib/prisma";
 import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 import {redirect} from "next/navigation";
 import type {Cart} from "@/generated/prisma/browser";
 import type {Address} from "@/generated/prisma/browser";
 
 export default async function CheckoutPage() {
   const hdrs = await headers();
-  const session = await auth.api.getSession({headers: hdrs});
+  const session = await getSessionOnce({headers: hdrs});
 
   if (!session?.user?.id) {
     redirect("/login");

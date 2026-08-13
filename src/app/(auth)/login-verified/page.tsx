@@ -3,9 +3,10 @@ import Link from "next/link";
 import {HomeIcon, ShoppingCart, CheckCircle} from "lucide-react";
 import {headers} from "next/headers";
 import {auth} from "@/lib/auth";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 
 export default async function LoginVerified() {
-  const session = await auth.api.getSession({headers: await headers()});
+  const session = await getSessionOnce({headers: await headers()});
   const name = session?.user?.name ?? "Gast";
 
   return (
