@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import type {Prisma} from "@/generated/prisma/browser";
+import {prisma} from "@/lib/prisma";
+import type {Prisma} from "@/generated/prisma";
 import {NextResponse} from "next/server";
 
 export async function POST(req: Request) {

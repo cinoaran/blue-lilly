@@ -1,6 +1,6 @@
-import {Prisma, Product} from "@/generated/prisma/client";
+import {Prisma, Product} from "@/generated/prisma";
 import {getCategoryDescendantIds} from "@/lib/category/categoryTree";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 
 type SearchSortField = "createdAt" | "name" | "price" | "sellPrice";
 type SearchSortDir = "asc" | "desc";

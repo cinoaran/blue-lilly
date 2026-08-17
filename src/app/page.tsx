@@ -7,6 +7,7 @@ import {convertDecimalToNumber} from "@/helpers";
 import prisma from "@/lib/prisma";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
+import NewsletterForm from "@/components/newsletter/NewsletterForm";
 import ProductsSkeleton from "./skeletons/ProductsSkeleton";
 // import {sleep} from "@/lib/utils";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
@@ -43,12 +44,12 @@ export default async function Home(props: {searchParams: SearchParams}) {
     );
     return ((safeProducts as ProductWithVariants[]) || []).length === 0 ? (
       <div className="max-w-[85vw] mx-auto flex items-center justify-center py-12">
-        <div className="text-center bg-primary rounded-md p-6">
+        <div className="text-center bg-secondary/50 border border-foreground/10 rounded-md p-6">
           <h3 className="text-lg font-medium">
             Aktuell befinden sich keine Produkte zur Auswahl
           </h3>
           <p className="text-sm text-foreground/60 mt-2">
-            Schaue später erneut vorbei.
+            Bitte schaue später nochmal vorbei.
           </p>
         </div>
       </div>
@@ -115,6 +116,10 @@ export default async function Home(props: {searchParams: SearchParams}) {
             query={searchParams.query as string}
           />
         )}
+
+        <div className="w-full flex items-center justify-center py-6">
+          <NewsletterForm />
+        </div>
       </div>
     </main>
   );

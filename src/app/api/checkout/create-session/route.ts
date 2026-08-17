@@ -1,11 +1,11 @@
 import {NextResponse} from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import {auth} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {createStripeCheckout} from "@/lib/Stripe/orders";
 import {toStripeAmount} from "@/lib/Stripe/client";
 import {getOrCreateCart} from "@/lib/cart/getOrCreateCart";
-import type {Prisma} from "@/generated/prisma/browser";
+import type {Prisma} from "@/generated/prisma";
 import * as z from "zod";
 
 const addressSchema = z.object({
@@ -227,46 +227,63 @@ export async function POST(req: Request) {
     }
 
     // 4. Order anlegen (mit userId oder null)
+    // Create order without nested items first, then create items separately
     const order = await prisma.order.create({
       data: {
-        userId,
-        // set scalar foreign key directly using UncheckedCreateInput
-        cartId: cart.id,
+        user: userId ? {connect: {id: userId}} : undefined,
+        cart: {connect: {id: cart.id}},
         status: "PENDING",
         itemsTotal: itemsTotalCents,
         shippingCost: shippingCents,
         totalAmount: totalCents,
         currency: "EUR",
-        shippingAddressId: finalShippingId,
-        billingAddressId: finalBillingId,
-        // Prisma types expect `undefined` for absent JSON fields rather than `null`.
+        shippingAddress: finalShippingId
+          ? {connect: {id: finalShippingId}}
+          : undefined,
+        billingAddress: finalBillingId
+          ? {connect: {id: finalBillingId}}
+          : undefined,
         shippingSnapshot: shippingSnapshot
           ? toPrismaJson(shippingSnapshot)
           : undefined,
         billingSnapshot: billingSnapshot
           ? toPrismaJson(billingSnapshot)
           : undefined,
-        items: {
-          create: cart.items.map((item) => ({
-            optionId: item.option?.id ?? null,
-            quantity: item.quantity,
-            priceAtOrder: toStripeAmount(
-              Number(item.option?.sellPrice ?? item.unitPrice ?? 0),
-            ),
-            nameAtOrder: item.option?.variant?.product?.name ?? "Produkt",
-            skuAtOrder: item.option?.sku ?? null,
-            productIdAtOrder: item.option?.variant?.product?.id ?? null,
-            optionLabelAtOrder: item.option?.variant?.size ?? null,
-            imageAtOrder:
-              item.option?.image?.[0] &&
-              /^https?:\/\//.test(item.option.image[0])
-                ? item.option.image[0]
-                : null,
-          })),
-        },
-      } as Prisma.OrderUncheckedCreateInput,
+      } as Prisma.OrderCreateInput,
+    });
+
+    // Create order items referencing the created order
+    const itemsToCreate = cart.items.map((item) => ({
+      orderId: order.id,
+      optionId: item.option?.id ?? null,
+      quantity: item.quantity,
+      priceAtOrder: toStripeAmount(
+        Number(item.option?.sellPrice ?? item.unitPrice ?? 0),
+      ),
+      nameAtOrder: item.option?.variant?.product?.name ?? "Produkt",
+      skuAtOrder: item.option?.sku ?? null,
+      productIdAtOrder: item.option?.variant?.product?.id ?? null,
+      optionLabelAtOrder: item.option?.variant?.size ?? null,
+      imageAtOrder:
+        item.option?.image?.[0] && /^https?:\/\//.test(item.option.image[0])
+          ? item.option.image[0]
+          : null,
+    }));
+
+    if (itemsToCreate.length > 0) {
+      await prisma.orderItem.createMany({data: itemsToCreate});
+    }
+
+    // re-fetch order with items
+    const orderWithItems = await prisma.order.findUnique({
+      where: {id: order.id},
       include: {items: true},
     });
+
+    // replace order variable with orderWithItems for downstream usage
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // @ts-ignore
+    const createdOrder = orderWithItems ?? order;
 
     console.info("creating stripe checkout", {
       orderId: order.id,

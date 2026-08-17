@@ -66,7 +66,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
         {/* Small screens: align right; from sm up: align center */}
         <TooltipContent
           side="bottom"
-          align="right"
+          align="center"
           sideOffset={1}
           className="sm:hidden"
         >

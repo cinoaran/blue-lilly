@@ -10,7 +10,7 @@ import {Option} from "@/types/product/options";
 import {BaseColor} from "@/generated/prisma/enums";
 import {revalidatePath} from "next/cache";
 import {UTApi} from "uploadthing/server";
-import {Prisma} from "@/generated/prisma/browser";
+import {Prisma} from "@/generated/prisma";
 
 // Helper: random suffix and ensure unique SKU
 function randomSuffix(len = 4) {
@@ -197,8 +197,7 @@ const updateProduct = async (data: ProductFormData) => {
     }
 
     // 4. Trimmed Product-Daten (wie vorher)
-    const trimmedData: Prisma.ProductUncheckedUpdateInput = {
-      // Temporär 'any' für Flexibilität
+    const trimmedDataUnchecked: Prisma.ProductUncheckedUpdateInput = {
       name: validData.name?.trim() || undefined,
       smallDesc: validData.smallDesc?.trim() || undefined,
       longDesc: validData.longDesc?.trim() || undefined,
@@ -212,6 +211,50 @@ const updateProduct = async (data: ProductFormData) => {
       isActive: validData.isActive ?? undefined,
       isFeatured: validData.isFeatured ?? undefined,
       // KEINE variants hier!
+    };
+
+    // Build a typed ProductUpdateInput for nested updates (uses `set` wrappers)
+    const trimmedDataUpdate: Prisma.ProductUpdateInput = {
+      name:
+        trimmedDataUnchecked.name === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.name as string},
+      smallDesc:
+        trimmedDataUnchecked.smallDesc === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.smallDesc as string},
+      longDesc:
+        trimmedDataUnchecked.longDesc === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.longDesc as string},
+      brand:
+        trimmedDataUnchecked.brand === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.brand as string},
+      slug:
+        trimmedDataUnchecked.slug === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.slug as string},
+      category:
+        trimmedDataUnchecked.categoryId === undefined
+          ? undefined
+          : {connect: {id: trimmedDataUnchecked.categoryId as string}},
+      subcategory:
+        trimmedDataUnchecked.subcategory === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.subcategory as string},
+      merchant:
+        trimmedDataUnchecked.merchantId === undefined
+          ? undefined
+          : {connect: {id: trimmedDataUnchecked.merchantId as string}},
+      isActive:
+        trimmedDataUnchecked.isActive === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.isActive as boolean},
+      isFeatured:
+        trimmedDataUnchecked.isFeatured === undefined
+          ? undefined
+          : {set: trimmedDataUnchecked.isFeatured as boolean},
     };
 
     // Preflight: collect SKUs from incoming data (generate where missing) and check duplicates
@@ -262,7 +305,7 @@ const updateProduct = async (data: ProductFormData) => {
         await tx.product.update({
           where: {id: validData.id},
           data: {
-            ...trimmedData,
+            ...trimmedDataUpdate,
             variants: {
               create:
                 validData.variants.map((variant) => ({
@@ -303,7 +346,7 @@ const updateProduct = async (data: ProductFormData) => {
         // Ohne Variants nur Product updaten
         await tx.product.update({
           where: {id: validData.id},
-          data: trimmedData,
+          data: trimmedDataUnchecked,
         });
       }
     });

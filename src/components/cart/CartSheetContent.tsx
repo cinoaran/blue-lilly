@@ -31,7 +31,9 @@ export function CartSheetContent({
 
   if (!cart || cart.items.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">Dein Warenkorb ist leer.</p>
+      <p className="container mx-auto bg-primary/10 w-70 p-5 rounded-md text-sm text-muted-foreground text-center">
+        Der Warenkorb ist leer.
+      </p>
     );
   }
 

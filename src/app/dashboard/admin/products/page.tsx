@@ -109,7 +109,7 @@ const ProductsPage = async () => {
               Aktuell befinden sich keine Produkte zur Auswahl
             </h3>
             <p className="text-sm text-foreground/60 mt-2">
-              Lege neue Produkte an, um sie hier anzuzeigen.
+              Bitte schaue später nochmal vorbei.
             </p>
           </div>
           <div className="flex flex-col items-center justify-center gap-5 mt-6">

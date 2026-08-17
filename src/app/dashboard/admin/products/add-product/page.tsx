@@ -1,7 +1,7 @@
 import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
 import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
 import ProductForm from "../_components/ProductForm";
-import {Category, Merchant} from "@/generated/prisma/client";
+import {Category, Merchant} from "@/generated/prisma";
 
 const ProductAddPage = async () => {
   const [flatCategories, merchants] = await Promise.all([
@@ -15,7 +15,7 @@ const ProductAddPage = async () => {
         categories={flatCategories as Category[]}
         merchants={merchants as Merchant[]}
         mode="add"
-      />     
+      />
     </div>
   );
 };

@@ -63,30 +63,36 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum NewsletterStatus {
+  PENDING
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+}
+
 // --- MODELS ---
 
 model User {
-  id            String    @id @default(cuid()) @map("id")
+  id            String   @id @default(cuid()) @map("id")
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  premium       Boolean   @default(false)
-  role          UserRole  @default(user)
-  banned        Boolean   @default(false)
+  premium       Boolean  @default(false)
+  role          UserRole @default(user)
+  banned        Boolean  @default(false)
   banReason     String?
-  banExpires    Int? /// Unix timestamp for ban expiration
-  otpCode       String?
-  otpExpires    DateTime?
-  isGuest       Boolean   @default(false) // ← kennzeichnet Gast-User
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  banExpires    Int? /// Unix timestamp for ban expiration  
+  isGuest       Boolean  @default(false) // ← kennzeichnet Gast-User
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  sessions  Session[]
-  accounts  Account[]
-  carts     Cart[]
-  orders    Order[]
-  addresses Address[]
+  sessions              Session[]
+  accounts              Account[]
+  carts                 Cart[]
+  orders                Order[]
+  addresses             Address[]
+  newsletterSubscribers NewsletterSubscriber[]
 
   @@map("user")
 }
@@ -161,7 +167,7 @@ model Partner {
   createdAt  DateTime @default(now()) @db.Timestamp(6)
   updatedAt  DateTime @updatedAt @db.Timestamp(6)
 
-  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   merchantId String
 }
 
@@ -193,7 +199,7 @@ model Product {
 model Category {
   id       String     @id @default(cuid())
   name     String
-  slug     String
+  slug     String     @unique
   parentId String?
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children Category[] @relation("CategoryTree")
@@ -223,13 +229,13 @@ model Option {
   displayColor  String?
   unitCategory  UnitCategory?
   unitValue     String?
-  entryPrice    Decimal       @default(0) @db.Decimal(6, 2)
-  sellPrice     Decimal       @default(0) @db.Decimal(6, 2)
+  entryPrice    Decimal       @default(0) @db.Decimal(12, 2)
+  sellPrice     Decimal       @default(0) @db.Decimal(12, 2)
   taxPercentage Decimal       @default(0) @db.Decimal(4, 2)
-  quantity      Int
+  quantity      Int           @default(0)
   sku           String?       @unique
   image         String[]
-  weight        Decimal       @default(0) @db.Decimal(6, 2)
+  weight        Decimal       @default(0) @db.Decimal(10, 2)
   createdAt     DateTime      @default(now()) @db.Timestamp(6)
   updatedAt     DateTime      @updatedAt @db.Timestamp(6)
 
@@ -353,6 +359,10 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model OrderItem {
@@ -373,4 +383,45 @@ model OrderItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([optionId])
+}
+
+model NewsletterSubscriber {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  email           String           @unique
+  emailNormalized String           @unique
+  status          NewsletterStatus @default(PENDING)
+
+  confirmationTokenHash String?   @unique
+  confirmationExpiresAt DateTime?
+  confirmedAt           DateTime?
+
+  unsubscribeTokenHash String?   @unique
+  unsubscribedAt       DateTime?
+
+  consentTextVersion String
+  consentGivenAt     DateTime
+  consentIpHash      String?
+  consentUserAgent   String?
+
+  source  String?
+  pageUrl String?
+
+  provider          String?
+  providerContactId String?
+  providerSyncedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([status, createdAt])
+  @@index([confirmationExpiresAt])
 }

@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {cookies, headers} from "next/headers";
-import prisma from "@/lib/prisma";
-import {Prisma} from "@/generated/prisma/client";
+import {prisma} from "@/lib/prisma";
+import {Prisma} from "@/generated/prisma";
 import type {
   Cart,
   Order,

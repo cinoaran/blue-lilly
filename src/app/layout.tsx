@@ -5,7 +5,7 @@ import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
 import "@/app/assets/globals.css";
 import {APP_DESCRIPTION, APP_NAME, APP_NAME_SECOND} from "@/constants";
 import Header from "@/components/shared/header";
-import Footer from "@/components/shared/footer";
+import Footer from "@/components/footer";
 import {TooltipProvider} from "@/components/ui/tooltip";
 
 // NEUE Google Fonts als CSS-Variablen
