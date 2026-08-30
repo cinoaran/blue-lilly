@@ -1,8 +1,20 @@
 import crypto from "node:crypto";
 import prisma from "@/lib/prisma";
 import {resend} from "@/lib/resend";
+import {render} from "@react-email/components";
+import NewsletterSubscriptionEmail from "@/emails/NewsletterSubscriptionEmail";
 
-export async function createPendingSubscriber(email: string) {
+export async function createPendingSubscriber(
+  email: string,
+  opts: {
+    username?: string | null;
+    userId?: string | null;
+    ip?: string | null;
+    userAgent?: string | null;
+    source?: string | null;
+    pageUrl?: string | null;
+  } = {},
+) {
   const normalized = email.trim().toLowerCase();
   const token = crypto.randomBytes(32).toString("hex");
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
@@ -19,6 +31,11 @@ export async function createPendingSubscriber(email: string) {
       status: "PENDING",
       confirmationTokenHash: tokenHash,
       unsubscribeTokenHash: unsubscribeTokenHash,
+      userId: opts.userId ?? null,
+      consentIpHash: opts.ip ?? null,
+      consentUserAgent: opts.userAgent ?? null,
+      source: opts.source ?? null,
+      pageUrl: opts.pageUrl ?? null,
       confirmationExpiresAt: expires,
       consentGivenAt: new Date(),
       consentTextVersion: "newsletter-v1",
@@ -29,6 +46,11 @@ export async function createPendingSubscriber(email: string) {
       status: "PENDING",
       confirmationTokenHash: tokenHash,
       unsubscribeTokenHash: unsubscribeTokenHash,
+      userId: opts.userId ?? null,
+      consentIpHash: opts.ip ?? null,
+      consentUserAgent: opts.userAgent ?? null,
+      source: opts.source ?? null,
+      pageUrl: opts.pageUrl ?? null,
       confirmationExpiresAt: expires,
       consentGivenAt: new Date(),
       consentTextVersion: "newsletter-v1",
@@ -40,11 +62,19 @@ export async function createPendingSubscriber(email: string) {
   const confirmUrl = `${appUrl}/newsletter/confirm?token=${token}`;
   const unsubscribeUrl = `${appUrl}/newsletter/unsubscribe?token=${unsubscribeToken}`;
 
+  const html = await render(
+    NewsletterSubscriptionEmail({
+      username: opts.username ?? undefined,
+      subscribeUrl: confirmUrl,
+      unsubscribeUrl: unsubscribeUrl,
+    }),
+  );
+
   await resend.emails.send({
     from: `Blue Lilly <newletter@030web.com>`,
     to: normalized,
     subject: "Bitte bestätige deine Newsletter-Anmeldung",
-    html: `<p>Bitte bestätige deine Anmeldung: <a href="${confirmUrl}">Anmeldung bestätigen</a></p><p>Abmelden: <a href="${unsubscribeUrl}">Abmelden</a></p>`,
+    html,
   });
 
   return {success: true, message: "Bestätigungs-E-Mail gesendet."};
@@ -122,4 +152,31 @@ export async function markBounceForEmail(email: string) {
     where: {emailNormalized: normalized},
     data: {status: "BOUNCED", unsubscribedAt: new Date()},
   });
+}
+
+export async function unsubscribeByUserId(userId: string) {
+  if (!userId) {
+    return {success: false, message: "Kein userId angegeben."};
+  }
+
+  const result = await prisma.newsletterSubscriber.updateMany({
+    where: {userId: userId},
+    data: {
+      status: "UNSUBSCRIBED",
+      unsubscribedAt: new Date(),
+      unsubscribeTokenHash: null,
+    },
+  });
+
+  if (result.count === 0) {
+    return {
+      success: false,
+      message: "Keine aktive Newsletter-Anmeldung für den Benutzer gefunden.",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Sie wurden erfolgreich vom Newsletter abgemeldet.",
+  };
 }

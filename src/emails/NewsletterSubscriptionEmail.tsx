@@ -3,7 +3,6 @@ import {
   Button,
   Container,
   Head,
-  Hr,
   Html,
   Link,
   Preview,
@@ -12,23 +11,27 @@ import {
   Text,
 } from "@react-email/components";
 
-interface VerifyEmailProps {
+interface NewsletterSubscriptionEmailProps {
   username?: string;
-  verificationUrl?: string;
+  subscribeUrl?: string;
+  unsubscribeUrl?: string;
 }
 
-export const VerifyUserPassword = ({
+export const NewsletterSubscriptionEmail = ({
   username,
-  verificationUrl,
-}: VerifyEmailProps) => {
-  const previewText = "Blue Lilly the Catshop setze dein Passwort zurück.";
+  subscribeUrl,
+  unsubscribeUrl,
+}: NewsletterSubscriptionEmailProps) => {
+  const name = username || "Abonnent";
+  const previewText = `Vielen Dank für dein Interesse an unserem Newsletter! Bitte bestätige deine Anmeldung, indem du auf den untenstehenden Button klickst.`;
+
   return (
     <Html>
       <Head />
       <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto my-10 max-w-116 p-5">
+          <Container className="mx-auto my-10 max-w-116.25 p-5">
             <span style={{display: "block", margin: "0 auto", maxWidth: 480}}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +45,6 @@ export const VerifyUserPassword = ({
                   <style>{`
                     .brand-name { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 64px; font-weight: 700; fill: currentColor; }
                     .brand-sub { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 400; letter-spacing: 6px; fill: currentColor; opacity: 0.8; }
-                    .cat-icon { fill: #0B6E99; }
                     `}</style>
                 </defs>
 
@@ -64,29 +66,51 @@ export const VerifyUserPassword = ({
               </svg>
             </span>
             <Text className="text-[14px] text-black leading-6">
-              Hallo <span className="font-semibold capitalize">{username}</span>
-              , wir bieten dir eine einfache Möglichkeit, dein Passwort zu
-              verifizieren. Klicke auf den untenstehenden Button, um Zugriff auf
-              dein Konto zu erhalten.
+              Hallo <span className="font-semibold capitalize">{name}</span>,
+              <br />
+              Vielen Dank für dein Interesse an unserem Newsletter! Bitte
+              bestätige deine Anmeldung, indem du auf den untenstehenden Button
+              klickst.
             </Text>
-            <Section className="my-8 text-center">
+            <Section className="mt-8 mb-8 text-center">
               <Button
                 className="bg-blue-900/90 px-5 py-3 text-center font-semibold text-[12px] text-white w-full"
-                href={verificationUrl}
+                href={subscribeUrl}
               >
-                Passwort zurücksetzen
+                Newsletter-Anmeldung bestätigen
               </Button>
+              <Text className="text-[14px] text-black/30 leading-6">
+                <strong>
+                  Sollte der Button nicht funktionieren, bitte kopiere den
+                  folgenden Link in deinen Browser:
+                </strong>
+                <Link href={subscribeUrl} className="text-black/50">
+                  {subscribeUrl}
+                </Link>
+              </Text>
             </Section>
-            <Text className="text-[14px] text-black leading-6">
-              <strong>Oder kopiere diese URL in deinen Browser:</strong>{" "}
-              <Link href={verificationUrl} className="text-blue-600">
-                {verificationUrl}
-              </Link>
-            </Text>
-            <Hr className="mx-0 my-6 w-full border border-[#eaeaea] border-solid" />
+            <Section className="mt-8 mb-8 text-center">
+              <Button
+                className="bg-blue-900/90 px-5 py-3 text-center font-semibold text-[12px] text-white w-full"
+                href={unsubscribeUrl}
+              >
+                Newsletter-Abmelden
+              </Button>
+              <Text className="text-[14px] text-black/30 leading-6">
+                <strong>
+                  Sollte der Button nicht funktionieren, bitte kopiere den
+                  folgenden Link in deinen Browser:
+                </strong>
+                <Link href={unsubscribeUrl} className="text-black/50">
+                  {unsubscribeUrl}
+                </Link>
+              </Text>
+            </Section>
+
+            <hr className="mx-0 my-6.5 w-full border border-[#eaeaea] border-solid" />
             <Text className="text-[#666666] text-[12px] leading-6">
-              Diese E-Mail wurde dir von Blue Lilly the Catshop gesendet. Wenn
-              du diese E-Mail nicht angefordert hast, ignoriere sie bitte.
+              This email was sent to you by Blue Lilly the Catshop. If you did
+              not request this email, please ignore it.
             </Text>
           </Container>
         </Body>
@@ -94,5 +118,4 @@ export const VerifyUserPassword = ({
     </Html>
   );
 };
-
-export default VerifyUserPassword;
+export default NewsletterSubscriptionEmail;

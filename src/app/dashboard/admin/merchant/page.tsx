@@ -2,9 +2,11 @@ import React from "react";
 import {DataTable} from "@/app/dashboard/_components/DataTable";
 import {columns} from "./_components/Columns";
 import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
+import {headers} from "next/headers";
 
 const MerchantPage = async () => {
-  const data = await getAllMerchants();
+  const hdrs = headers();
+  const data = await getAllMerchants({headers: hdrs});
 
   if (!data) {
     return (

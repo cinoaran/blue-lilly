@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
+import {usePathname} from "next/navigation";
 
 // Menu items.
 const items = [
@@ -89,18 +90,13 @@ const items = [
 
 export function AppSideBar() {
   const {open} = useSidebar();
+  const pathname = usePathname();
 
   return (
     <aside>
-      <Sidebar
-        className="bg-link/10 border-r-[0.2px] border-r-link/10 text-sidebar-foreground"
-        collapsible="icon"
-      >
-        <SidebarContent className="bg-link/10 backdrop-blur-lg border-foreground/10 shadow-md z-50">
-          <div className="absolute right-2 top-2 md:hidden z-50">
-            <SidebarTrigger />
-          </div>
-          <div className="absolute right-2 top-2 hidden md:block z-50">
+      <Sidebar className="text-sidebar-foreground" collapsible="icon">
+        <SidebarContent className="bg-sidebar border-foreground/10 shadow-md z-50">
+          <div className="absolute text-primary right-2 top-2 md:hidden z-50">
             <SidebarTrigger />
           </div>
           <SidebarGroup>
@@ -108,19 +104,27 @@ export function AppSideBar() {
               <SidebarMenu
                 className={`space-y-5 ${open ? "px-10" : "px-0"} mt-20 md:mt-52`}
               >
-                {items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <Link
-                        href={item.url}
-                        className="max-w-fit underlined hover:bg-transparent"
-                      >
-                        <item.icon />
-                        <span className="text-md">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {items.map((item) => {
+                  const isActive =
+                    pathname === item.url ||
+                    !!(pathname && pathname.startsWith(item.url + "/"));
+
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <Link
+                          href={item.url}
+                          className="max-w-fit text-side hover:text-primary/50"
+                        >
+                          <item.icon />
+                          <span className="text-md underlined">
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

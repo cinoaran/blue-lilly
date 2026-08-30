@@ -1,4 +1,5 @@
 import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
+import {headers} from "next/headers";
 
 import ProductForm from "../_components/ProductForm";
 import {
@@ -13,9 +14,11 @@ import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
 export default async function EditProductPage(props: unknown) {
   const {params} = props as {params: {id: string}};
   const {id} = await params;
+  const hdrs = headers();
+
   const [flatCategories, merchants, product] = await Promise.all([
-    getAllCategories(),
-    getAllMerchants(),
+    getAllCategories(undefined, {headers: hdrs}),
+    getAllMerchants({headers: hdrs}),
     getProductById(id),
   ]);
 

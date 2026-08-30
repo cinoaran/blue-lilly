@@ -32,11 +32,16 @@ export async function subscribeToNewsletter(formData: FormData) {
       consentTextVersion: "newsletter-v1",
     },
   });
-  await resend.emails.send({
-    from: "Blue Lilly <newletter@030web.com>",
-    to: email,
-    subject: "Bitte bestätige deine Newsletter-Anmeldung",
-    html: `<a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/confirm?token=${token}">Anmeldung bestätigen</a>`,
-  });
+  try {
+    const res = await resend.emails.send({
+      from: "Blue Lilly <newletter@030web.com>",
+      to: email,
+      subject: "Bitte bestätige deine Newsletter-Anmeldung",
+      html: `<a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/confirm?token=${token}">Anmeldung bestätigen</a>`,
+    });
+    console.log("Resend send response:", res);
+  } catch (err) {
+    console.error("Resend send failed:", err);
+  }
   return {success: true, message: "Postfach prüfen."};
 }

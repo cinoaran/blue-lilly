@@ -4,7 +4,7 @@ import React from "react";
 // running `ensureAndRequire` during build-time where no session exists.
 export const dynamic = "force-dynamic";
 import {headers} from "next/headers";
-import {redirect} from "next/navigation";
+import {notFound} from "next/navigation";
 import {ensureAndRequire} from "@/acl/acl";
 
 export default async function AdminLayout({
@@ -16,7 +16,7 @@ export default async function AdminLayout({
   try {
     await ensureAndRequire({headers: hdrs}, "admin:access");
   } catch {
-    redirect("/");
+    notFound();
   }
 
   return <>{children}</>;

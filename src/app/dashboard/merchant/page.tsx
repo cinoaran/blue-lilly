@@ -1,5 +1,5 @@
 import {headers} from "next/headers";
-import {redirect} from "next/navigation";
+import {notFound, redirect} from "next/navigation";
 import {ensureSession} from "@/acl/acl";
 
 export default async function MerchantDashboardPage() {
@@ -7,12 +7,12 @@ export default async function MerchantDashboardPage() {
   const session = await ensureSession({headers: hdrs});
 
   if (!session || !session.user || !session.user.id) {
-    redirect("/login");
+    notFound();
   }
 
   if (session.user.role !== "merchant") {
     // Not authorized for merchant dashboard
-    redirect("/");
+    notFound();
   }
   // Redirect to the merchant default subpage
   redirect(`/dashboard/merchant/products`);

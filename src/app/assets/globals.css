@@ -444,6 +444,7 @@
 
   .underlined {
     position: relative;
+    display: inline-block;
   }
 
   .underlined::after {

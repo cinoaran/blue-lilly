@@ -8,8 +8,8 @@ export async function getAllMerchants(
   // require admin permission
   try {
     await ensureAndRequire(opts, "admin:read");
-  } catch (err) {
-    console.error("getAllMerchants: permission check failed", err);
+  } catch (_err) {
+    // Permission failed — return null quietly to avoid leaking information
     return null;
   }
 

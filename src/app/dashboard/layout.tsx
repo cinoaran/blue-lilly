@@ -3,8 +3,9 @@ import "../assets/globals.css";
 import {ThemeProvider} from "next-themes";
 import {APP_NAME, APP_DESCRIPTION} from "@/constants/index";
 import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
-import {AppSideBar} from "./_components/AppSideBar";
-import {cookies} from "next/headers";
+import {cookies, headers} from "next/headers";
+import {ensureSession} from "@/acl/acl";
+import {notFound} from "next/navigation";
 
 export const metadata: Metadata = {
   title: `${APP_NAME}`,
@@ -19,12 +20,23 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar-state")?.value === "true";
 
+  // Early session check: if no session, return 404 before rendering any UI
+  const hdrs = await headers();
+  const session = await ensureSession({headers: hdrs});
+  if (!session || !session.user || !session.user.id) {
+    notFound();
+  }
+
+  // Dynamically import client-side sidebar after session check to avoid
+  // leaking page structure for unauthorized requests.
+  const {AppSideBar} = await import("./_components/AppSideBar");
+
   return (
     <>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <main className={`antialiased mx-auto min-h-screen w-full`}>
           <SidebarProvider defaultOpen={defaultOpen}>
-            <div className="absolute left-0 z-50 top-1 md:hidden pointer-events-auto">
+            <div className="absolute left-0 z-50 md:hidden top-1 pointer-events-auto">
               <SidebarTrigger />
             </div>
             <div className="flex flex-col md:flex-row min-h-screen w-full">

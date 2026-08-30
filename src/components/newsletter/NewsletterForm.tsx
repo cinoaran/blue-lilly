@@ -6,9 +6,10 @@ import {Gift} from "lucide-react";
 
 type Props = {
   onSuccess?: () => void;
+  title?: string | null; // if null => hide title; if undefined => show default
 };
 
-export default function NewsletterForm({onSuccess}: Props) {
+export default function NewsletterForm({onSuccess, title}: Props) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,11 +87,13 @@ export default function NewsletterForm({onSuccess}: Props) {
     <div className="relative flex flex-col items-center justify-center gap-4 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 w-full p-4 overflow-hidden">
       <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
 
-      <h3 className="text-lg font-semibold text-center">
-        Melde dich für unseren Newsletter an! Profitiere von exklusiven
-        Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem
-        Posteingang.
-      </h3>
+      {title === null ? null : (
+        <h3 className="text-lg font-semibold text-center">
+          {typeof title === "string"
+            ? title
+            : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang."}
+        </h3>
+      )}
 
       <form
         onSubmit={handleSubmit}

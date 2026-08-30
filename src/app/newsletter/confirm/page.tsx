@@ -2,6 +2,9 @@ import {Card, CardContent, CardHeader} from "@/components/ui/card";
 import {confirmSubscriberByToken} from "@/lib/newsletter/service";
 import {CheckCircle} from "lucide-react";
 import Link from "next/link";
+import NewsletterForm from "@/components/newsletter/NewsletterForm";
+import {getSessionOnce} from "@/lib/session/sessionCache";
+import {headers} from "next/headers";
 
 type Props = {searchParams: Promise<{token?: string}>};
 
@@ -14,6 +17,8 @@ export default async function ConfirmPage({searchParams}: Props) {
 
   // 33855e2d779dae22c639de5cb841665bf24898f0e1bd0eb4880293fd3b24826c
   const result = await confirmSubscriberByToken(token);
+  const session = await getSessionOnce({headers: await headers()});
+  const username = session?.user?.name ?? null;
   // Determine friendly UI texts and CTAs based on backend message
   const msg = String(result.message || "").toLowerCase();
 
@@ -74,6 +79,19 @@ export default async function ConfirmPage({searchParams}: Props) {
             Zurück zum Shop
           </Link>
         </div>
+
+        {/* Show newsletter signup form when token expired to let user re-subscribe */}
+        {!result.success && msg.includes("abgelaufen") ? (
+          <div className="w-full flex flex-col items-center justify-center py-6">
+            <NewsletterForm
+              title={
+                username
+                  ? `Melde dich gerne erneut an, ${username}.!`
+                  : "Melde dich gerne erneut an."
+              }
+            />
+          </div>
+        ) : null}
       </Card>
     </main>
   );
