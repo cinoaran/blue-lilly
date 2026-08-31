@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import prisma from "@/lib/prisma";
 import {resend} from "@/lib/resend";
+import resendClient from "@/lib/resendClient";
 import {render} from "@react-email/components";
 import NewsletterSubscriptionEmail from "@/emails/NewsletterSubscriptionEmail";
 
@@ -70,8 +71,9 @@ export async function createPendingSubscriber(
     }),
   );
 
+  const domain = process.env.RESEND_DOMAIN ?? "030web.com";
   await resend.emails.send({
-    from: `Blue Lilly <newletter@030web.com>`,
+    from: `Blue Lilly <newsletter@${domain}>`,
     to: normalized,
     subject: "Bitte bestätige deine Newsletter-Anmeldung",
     html,
@@ -118,15 +120,44 @@ export async function confirmSubscriberByToken(token: string) {
     },
   });
 
+  // Try to sync to Resend segment if configured
+  try {
+    const segmentId = process.env.RESEND_NEWSLETTER_SEGMENT_ID;
+    if (segmentId) {
+      const contactId = await resendClient.ensureContactInSegment(
+        subscriber.email,
+        segmentId,
+      );
+      if (contactId) {
+        await prisma.newsletterSubscriber.updateMany({
+          where: {confirmationTokenHash: tokenHash},
+          data: {
+            provider: "resend",
+            providerContactId: contactId,
+            providerSyncedAt: new Date(),
+          },
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Failed to sync subscriber to Resend segment:", err);
+  }
+
   return {success: true, message: "Anmeldung bestätigt."};
 }
 export async function unsubscribeByToken(token: string) {
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  // Find subscriber(s) first so we have the email(s) to sync with provider
+  const subscribers = await prisma.newsletterSubscriber.findMany({
+    where: {unsubscribeTokenHash: tokenHash},
+  });
 
-  // Atomically mark subscriber as unsubscribed and clear the stored token.
-  // Using updateMany with the tokenHash in the WHERE clause prevents a
-  // TOCTOU race between lookup and update and makes the token single‑use.
-  const result = await prisma.newsletterSubscriber.updateMany({
+  if (subscribers.length === 0) {
+    return {success: false, message: "Sie sind bereits abgemeldet."};
+  }
+
+  // Atomically mark unsubscribed
+  await prisma.newsletterSubscriber.updateMany({
     where: {unsubscribeTokenHash: tokenHash},
     data: {
       status: "UNSUBSCRIBED",
@@ -135,9 +166,23 @@ export async function unsubscribeByToken(token: string) {
     },
   });
 
-  if (result.count === 0) {
-    // No rows updated -> token not found or already used
-    return {success: false, message: "Sie sind bereits abgemeldet."};
+  // Try to remove from Resend segment
+  try {
+    const segmentId = process.env.RESEND_NEWSLETTER_SEGMENT_ID;
+    if (segmentId) {
+      for (const s of subscribers) {
+        if (s.providerContactId) {
+          await resendClient.removeContactFromSegment(
+            s.providerContactId,
+            segmentId,
+          );
+        } else {
+          await resendClient.removeEmailFromSegment(s.email, segmentId);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to remove subscriber from Resend segment:", err);
   }
 
   return {
@@ -158,6 +203,17 @@ export async function unsubscribeByUserId(userId: string) {
   if (!userId) {
     return {success: false, message: "Kein userId angegeben."};
   }
+  // Find subscribers for the user so we can sync with provider
+  const subscribers = await prisma.newsletterSubscriber.findMany({
+    where: {userId: userId},
+  });
+
+  if (subscribers.length === 0) {
+    return {
+      success: false,
+      message: "Keine aktive Newsletter-Anmeldung für den Benutzer gefunden.",
+    };
+  }
 
   const result = await prisma.newsletterSubscriber.updateMany({
     where: {userId: userId},
@@ -167,6 +223,27 @@ export async function unsubscribeByUserId(userId: string) {
       unsubscribeTokenHash: null,
     },
   });
+
+  try {
+    const segmentId = process.env.RESEND_NEWSLETTER_SEGMENT_ID;
+    if (segmentId) {
+      for (const s of subscribers) {
+        if (s.providerContactId) {
+          await resendClient.removeContactFromSegment(
+            s.providerContactId,
+            segmentId,
+          );
+        } else {
+          await resendClient.removeEmailFromSegment(s.email, segmentId);
+        }
+      }
+    }
+  } catch (err) {
+    console.error(
+      "Failed to remove user subscribers from Resend segment:",
+      err,
+    );
+  }
 
   if (result.count === 0) {
     return {
