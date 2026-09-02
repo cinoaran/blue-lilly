@@ -30,6 +30,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Enable WebAssembly experiments so Prisma's generated .wasm can be processed
+  webpack: (config, {isServer}) => {
+    // Enable async WebAssembly experiments
+    config.experiments = {
+      ...(config.experiments || {}),
+      asyncWebAssembly: true,
+    };
+
+    // Ensure .wasm files are treated as async WebAssembly modules
+    if (!config.module) config.module = {rules: []};
+    config.module.rules.push({
+      test: /\.wasm$/i,
+      type: "webassembly/async",
+    });
+
+    return config;
+  },
 };
 
 export default nextConfig;

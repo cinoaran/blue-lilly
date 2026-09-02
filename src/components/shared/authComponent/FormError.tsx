@@ -10,9 +10,9 @@ const FormError = ({message}: FormErrorProps) => {
 
   return (
     <p
-      className={`flex items-start bg-destructive w-full rounded-md text-white text-center p-1 mb-5`}
+      className={`flex items-start justify-center rounded-md bg-destructive text-md text-center p-2 mb-5 min-w-full`}
     >
-      <span className="flex items-center justify-center gap-2">
+      <span className="flex items-center justify-center gap-2 text-destructive-foreground">
         <CircleAlertIcon size={12} />
         {message}
       </span>

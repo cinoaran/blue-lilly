@@ -84,11 +84,11 @@ export default function NewsletterForm({onSuccess, title}: Props) {
   }, [email]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-4 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 w-full p-4 overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center gap-6 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-72 w-full overflow-hidden">
       <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
 
       {title === null ? null : (
-        <h3 className="text-lg font-semibold text-center">
+        <h3 className="text-lg font-semibold text-left">
           {typeof title === "string"
             ? title
             : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang."}
@@ -120,6 +120,7 @@ export default function NewsletterForm({onSuccess, title}: Props) {
         <label className="flex items-center gap-2 mt-2 text-sm">
           <input
             type="checkbox"
+            className="w-4 h-4 bg-primary cursor-pointer"
             checked={consent}
             onChange={(e) => setConsent(e.target.checked)}
             required

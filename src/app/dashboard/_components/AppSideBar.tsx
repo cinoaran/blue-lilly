@@ -11,6 +11,7 @@ import {
   GalleryThumbnails,
   LibraryBig,
   Boxes,
+  Inbox,
 } from "lucide-react";
 
 import {
@@ -70,6 +71,11 @@ const items = [
     title: "Carousel",
     url: "/dashboard/admin/carousel",
     icon: GalleryThumbnails,
+  },
+  {
+    title: "Newsletter",
+    url: "/dashboard/admin/newsletter",
+    icon: Inbox,
   },
   {
     title: "Settings",

@@ -6,7 +6,7 @@ import {notFound} from "next/navigation";
 import {Category, Merchant} from "@/generated/prisma";
 
 const ProductAddPage = async () => {
-  const hdrs = headers();
+  const hdrs = await headers();
 
   // Early guard: ensure caller has admin access before importing UI or touching DB
   try {

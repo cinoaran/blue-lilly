@@ -5,6 +5,8 @@ import Link from "next/link";
 import NewsletterForm from "@/components/newsletter/NewsletterForm";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {headers} from "next/headers";
+import prisma from "@/lib/prisma";
+import crypto from "node:crypto";
 
 type Props = {searchParams: Promise<{token?: string}>};
 
@@ -14,30 +16,144 @@ export default async function ConfirmPage({searchParams}: Props) {
   if (!token) {
     return <div className="p-8">Token fehlt.</div>;
   }
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
-  // 33855e2d779dae22c639de5cb841665bf24898f0e1bd0eb4880293fd3b24826c
-  const result = await confirmSubscriberByToken(token);
+  // Try to read subscriber by confirmation token first
+  const subscriber = await prisma.newsletterSubscriber.findUnique({
+    where: {
+      confirmationTokenHash: tokenHash,
+    },
+  });
+
+  console.log(subscriber);
+
   const session = await getSessionOnce({headers: await headers()});
   const username = session?.user?.name ?? null;
-  // Determine friendly UI texts and CTAs based on backend message
-  const msg = String(result.message || "").toLowerCase();
+  // Use DB state to decide what to show (avoid text-based checks / localization issues)
+  const now = new Date();
 
-  let title = "Newsletter Anmeldung fehlgeschlagen";
-  let subtitle = "Leider ist ein Fehler aufgetreten.";
+  if (!subscriber) {
+    // Token not found - show invalid/used message
+    const title = "Ungültiger Bestätigungslink";
+    const subtitle =
+      "Der Bestätigungslink ist ungültig oder wurde bereits verwendet.";
 
-  if (result.success) {
-    title = "Newsletter Anmeldung erfolgreich!";
-    subtitle = "Vielen Dank für Ihre Anmeldung.";
-  } else if (msg.includes("bereits") || msg.includes("verwendet")) {
-    title = "Bereits bestätigt";
-    subtitle = "Der Link wurde bereits verwendet. Sie sind bereits angemeldet.";
-  } else if (msg.includes("abgelaufen")) {
-    title = "Bestätigungslink abgelaufen";
-    subtitle = "Der Link ist abgelaufen.";
-  } else if (msg.includes("ungültig")) {
-    title = "Ungültiger Bestätigungslink";
-    subtitle = "Der Link ist ungültig.";
+    return (
+      <main className="container mx-auto p-8">
+        <Card className="border-none text-foreground my-20 py-5 w-full max-w-5xl mx-auto">
+          <CardHeader className="flex flex-col items-center justify-center gap-6 font-bold uppercase">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <h3 className="text-center font-semibold text-xl">{title}</h3>
+              <p className="text-center text-sm opacity-90">{subtitle}</p>
+            </div>
+          </CardHeader>
+
+          <div className="flex flex-col items-center justify-center p-6">
+            <NewsletterForm
+              title={
+                username
+                  ? `Melde dich gerne erneut an, ${username}.!`
+                  : "Melde dich gerne erneut an."
+              }
+            />
+          </div>
+        </Card>
+      </main>
+    );
   }
+
+  if (subscriber.status === "UNSUBSCRIBED") {
+    return (
+      <main className="container mx-auto p-8">
+        <Card className="border-none text-foreground my-20 py-12 w-full max-w-5xl mx-auto">
+          <CardHeader className="flex flex-col items-center justify-center gap-6 font-bold uppercase">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <h3 className="text-center font-semibold text-xl">
+                Sie sind abgemeldet
+              </h3>
+              <p className="text-center text-sm opacity-90">
+                Diese E-Mail-Adresse ist abgemeldet.
+              </p>
+            </div>
+          </CardHeader>
+
+          {subscriber.unsubscribeTokenHash === null ? (
+            <div className="w-full flex flex-col items-center justify-center px-4 py-6">
+              <NewsletterForm
+                title={
+                  username
+                    ? `Hier können Sie sich erneut anmelden, ${username}.!`
+                    : "Hier können Sie sich erneut anmelden,"
+                }
+              />
+            </div>
+          ) : null}
+        </Card>
+      </main>
+    );
+  }
+
+  if (subscriber.status === "SUBSCRIBED") {
+    const title = "Bereits bestätigt";
+    const subtitle = "Diese Newsletter-Anmeldung wurde bereits bestätigt.";
+
+    return (
+      <main className="container mx-auto p-8">
+        <Card className="border-none text-foreground my-20 py-12 w-full max-w-5xl mx-auto">
+          <CardHeader className="flex flex-col items-center justify-center gap-6 font-bold uppercase">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <h3 className="text-center font-semibold text-xl">{title}</h3>
+              <p className="text-center text-sm opacity-90">{subtitle}</p>
+            </div>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
+
+  // Pending - check expiry
+  if (
+    subscriber.confirmationExpiresAt &&
+    subscriber.confirmationExpiresAt <= now
+  ) {
+    const title = "Bestätigungslink abgelaufen";
+    const subtitle = "Der Bestätigungslink ist abgelaufen.";
+
+    return (
+      <main className="container mx-auto p-8 h-72 max-w-7xl">
+        <Card className="border-none text-foreground my-20 p-5 w-full">
+          <CardHeader className="flex flex-col items-center justify-center gap-6 font-bold uppercase">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <h3 className="text-center font-semibold text-xl">{title}</h3>
+              <p className="text-center text-sm opacity-90">{subtitle}</p>
+            </div>
+          </CardHeader>
+
+          <div className="w-full flex flex-col items-center justify-center">
+            <NewsletterForm
+              title={
+                username
+                  ? `Melde dich gerne erneut an, ${username}.!`
+                  : "Melde dich gerne erneut an."
+              }
+            />
+          </div>
+        </Card>
+      </main>
+    );
+  }
+
+  // Otherwise: proceed with confirmation (subscriber is likely PENDING and not expired)
+  const result = await confirmSubscriberByToken(token);
+
+  // derive title/subtitle from structured result
+  const title = result.success
+    ? "Newsletter Anmeldung erfolgreich!"
+    : "Newsletter Anmeldung fehlgeschlagen";
+
+  const subtitle = result.success
+    ? "Vielen Dank für Ihre Anmeldung."
+    : (result.message as string) || "Leider ist ein Fehler aufgetreten.";
 
   return (
     <main className="container mx-auto p-8">
@@ -79,19 +195,6 @@ export default async function ConfirmPage({searchParams}: Props) {
             Zurück zum Shop
           </Link>
         </div>
-
-        {/* Show newsletter signup form when token expired to let user re-subscribe */}
-        {!result.success && msg.includes("abgelaufen") ? (
-          <div className="w-full flex flex-col items-center justify-center py-6">
-            <NewsletterForm
-              title={
-                username
-                  ? `Melde dich gerne erneut an, ${username}.!`
-                  : "Melde dich gerne erneut an."
-              }
-            />
-          </div>
-        ) : null}
       </Card>
     </main>
   );

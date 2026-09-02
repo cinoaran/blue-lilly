@@ -132,13 +132,16 @@ const Loginform = () => {
 
         <FormError message={error || urlError} />
         <FormSuccess message={success} />
+
         <Button
           type="submit"
           disabled={isPending || !form.formState.isValid}
           variant={"default"}
           className="rounded-md w-full bg-primary text-primary-foreground text-sm md:text-md cursor-pointer py-6 mt-5 animate-in transition-all duration-200 ease-in-out hover:shadow-sm shadow-sm hover:shadow-accent-foreground/50 focus-visible:ring-2 focus-visible:ring-link focus-visible:ring-offset-2 focus-visible:ring-offset-background uppercase"
         >
-          {isPending || !form.formState.isValid ? "Waiting..." : "Login now"}
+          {isPending || !form.formState.isValid
+            ? "Bitte füllen Sie alle Felder aus"
+            : "Login erstellen"}
           {isPending && <Spinner />}
         </Button>
       </form>

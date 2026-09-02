@@ -96,7 +96,7 @@ function ResetPasswordContent() {
                     : "text-foreground"
                 }`}
               >
-                New password
+                Neues Passwort
               </FormLabel>
               <FormControl>
                 <PasswordInput
@@ -121,7 +121,7 @@ function ResetPasswordContent() {
                     : "text-foreground"
                 }`}
               >
-                Confirm new password
+                Neues Passwort bestätigen
               </FormLabel>
               <FormControl>
                 <PasswordInput
@@ -143,8 +143,8 @@ function ResetPasswordContent() {
           className="rounded-md w-full bg-primary text-primary-foreground text-sm md:text-md cursor-pointer py-6 mt-5 animate-in transition-all duration-200 ease-in-out hover:shadow-sm shadow-sm hover:shadow-accent-foreground/50 focus-visible:ring-2 focus-visible:ring-link focus-visible:ring-offset-2 focus-visible:ring-offset-background uppercase"
         >
           {isPending || !form.formState.isValid
-            ? "Waiting..."
-            : "Reset password"}
+            ? "Bitte warten..."
+            : "Passwort zurücksetzen"}
           {form.formState.isSubmitting && <Spinner />}
         </Button>
         {formError}

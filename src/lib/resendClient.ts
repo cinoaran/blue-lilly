@@ -1,132 +1,352 @@
-// Helper wrapper for basic Resend contact/segment operations using the HTTP API.
-// This implements best-effort calls and logs failures rather than throwing,
-// since the exact Resend API surface may vary across versions.
-const API_BASE = "https://api.resend.com";
-const API_KEY =
-  process.env.RESEND_030_WEB_API_KEY || process.env.RESEND_API_KEY;
+import {resend} from "@/lib/resend";
 
-async function call(path: string, init: RequestInit = {}) {
-  if (!API_KEY) throw new Error("RESEND API key not configured");
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-      ...(init.headers as Record<string, string> | undefined),
-    },
+export type Contact = {
+  id: string;
+  email: string;
+  unsubscribed?: boolean;
+  firstName?: string | null;
+  lastName?: string | null;
+};
+
+export type ContactUpdateResult = {
+  id: string;
+};
+
+export type CreateContactOptions = {
+  firstName?: string;
+  lastName?: string;
+  segmentId?: string;
+  topicId?: string;
+  properties?: Record<string, string>;
+};
+
+export type UpdateContactInput = {
+  firstName?: string;
+  lastName?: string;
+  unsubscribed?: boolean;
+  properties?: Record<string, string>;
+};
+
+type ResendErrorLike = {
+  message?: string;
+  name?: string;
+  statusCode?: number;
+};
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
+function isNotFoundError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const apiError = error as ResendErrorLike;
+
+  return (
+    apiError.statusCode === 404 ||
+    apiError.name === "not_found" ||
+    apiError.name === "not_found_error"
+  );
+}
+
+/**
+ * Sucht einen Resend-Kontakt über die E-Mail-Adresse.
+ */
+export async function findContactByEmail(
+  email: string,
+): Promise<Contact | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const {data, error} = await resend.contacts.get({
+    email: normalizedEmail,
   });
-  const text = await res.text();
-  try {
-    return {status: res.status, body: text ? JSON.parse(text) : null};
-  } catch (err) {
-    return {status: res.status, body: text};
-  }
-}
 
-export async function findContactByEmail(email: string) {
-  try {
-    const q = encodeURIComponent(email);
-    const resp = await call(`/v1/contacts?email=${q}`);
-    if (resp.status === 200 && resp.body && Array.isArray(resp.body.data)) {
-      return resp.body.data[0] ?? null;
+  if (error) {
+    if (isNotFoundError(error)) {
+      return null;
     }
-    // Some API versions may return an object
-    if (resp.status === 200 && resp.body && resp.body.data)
-      return resp.body.data;
-    return null;
-  } catch (err) {
-    console.error("findContactByEmail failed", err);
+
+    throw new Error(
+      getErrorMessage(error, "Resend-Kontakt konnte nicht abgerufen werden"),
+    );
+  }
+
+  if (!data) {
     return null;
   }
+
+  return {
+    id: data.id,
+    email: data.email,
+    unsubscribed: data.unsubscribed,
+  };
 }
 
-export async function createContact(email: string) {
-  try {
-    const resp = await call(`/v1/contacts`, {
-      method: "POST",
-      body: JSON.stringify({email}),
-    });
-    if (resp.status === 201 || resp.status === 200) return resp.body;
-    return null;
-  } catch (err) {
-    console.error("createContact failed", err);
-    return null;
+/**
+ * Erstellt einen neuen Resend-Kontakt.
+ */
+export async function createContact(
+  email: string,
+  options: CreateContactOptions = {},
+): Promise<Contact> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const {data, error} = await resend.contacts.create({
+    email: normalizedEmail,
+    firstName: options.firstName,
+    lastName: options.lastName,
+    unsubscribed: false,
+    properties: options.properties,
+
+    segments: options.segmentId
+      ? [
+          {
+            id: options.segmentId,
+          },
+        ]
+      : undefined,
+
+    topics: options.topicId
+      ? [
+          {
+            id: options.topicId,
+            subscription: "opt_in",
+          },
+        ]
+      : undefined,
+  });
+
+  if (error || !data?.id) {
+    throw new Error(
+      getErrorMessage(error, "Resend-Kontakt konnte nicht erstellt werden"),
+    );
   }
+
+  return {
+    id: data.id,
+    email: normalizedEmail,
+    unsubscribed: false,
+    firstName: options.firstName ?? null,
+    lastName: options.lastName ?? null,
+  };
 }
 
+/**
+ * Fügt einen bestehenden Kontakt zu einem Resend-Segment hinzu.
+ */
 export async function addContactToSegment(
   contactId: string,
   segmentId: string,
-) {
-  try {
-    // Try adding by contact id; some API versions accept {contact_id}
-    const resp = await call(`/v1/segments/${segmentId}/contacts`, {
-      method: "POST",
-      body: JSON.stringify({contact_id: contactId}),
-    });
-    if (resp.status === 200 || resp.status === 201) return resp.body;
-    // fallback: try adding by contact id in array
-    const resp2 = await call(`/v1/segments/${segmentId}/contacts`, {
-      method: "POST",
-      body: JSON.stringify({contacts: [{id: contactId}]}),
-    });
-    if (resp2.status === 200 || resp2.status === 201) return resp2.body;
-    return null;
-  } catch (err) {
-    console.error("addContactToSegment failed", err);
-    return null;
+): Promise<unknown> {
+  const {data, error} = await resend.contacts.segments.add({
+    contactId,
+    segmentId,
+  });
+
+  if (error) {
+    throw new Error(
+      getErrorMessage(
+        error,
+        "Kontakt konnte nicht zum Resend-Segment hinzugefügt werden",
+      ),
+    );
   }
+
+  return data;
 }
 
+/**
+ * Entfernt einen Kontakt aus einem Resend-Segment.
+ *
+ * Für deine installierte SDK-Version wird contactId erwartet.
+ */
 export async function removeContactFromSegment(
   contactId: string,
   segmentId: string,
-) {
-  try {
-    // Best-effort delete
-    const resp = await call(`/v1/segments/${segmentId}/contacts/${contactId}`, {
-      method: "DELETE",
+): Promise<boolean> {
+  const {error} = await resend.contacts.segments.remove({
+    contactId,
+    segmentId,
+  });
+
+  if (error) {
+    throw new Error(
+      getErrorMessage(
+        error,
+        "Kontakt konnte nicht aus dem Resend-Segment entfernt werden",
+      ),
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Setzt den globalen Resend-Abmeldestatus.
+ *
+ * true  = global von allen Broadcasts abgemeldet
+ * false = wieder global aktiviert
+ */
+export async function setContactUnsubscribed(
+  contactId: string,
+  unsubscribed: boolean,
+): Promise<ContactUpdateResult> {
+  const {data, error} = await resend.contacts.update({
+    id: contactId,
+    unsubscribed,
+  });
+
+  if (error) {
+    throw new Error(
+      getErrorMessage(error, "Resend-Kontakt konnte nicht aktualisiert werden"),
+    );
+  }
+
+  if (!data?.id) {
+    throw new Error("Resend lieferte keine Kontakt-ID beim Update zurück");
+  }
+
+  return data;
+}
+
+/**
+ * Aktualisiert weitere Felder eines Resend-Kontakts.
+ */
+export async function updateContact(
+  contactId: string,
+  payload: UpdateContactInput,
+): Promise<ContactUpdateResult> {
+  const {data, error} = await resend.contacts.update({
+    id: contactId,
+    ...payload,
+  });
+
+  if (error) {
+    throw new Error(
+      getErrorMessage(error, "Resend-Kontakt konnte nicht aktualisiert werden"),
+    );
+  }
+
+  if (!data?.id) {
+    throw new Error("Resend lieferte keine Kontakt-ID beim Update zurück");
+  }
+
+  return data;
+}
+
+/**
+ * Liest einen vollständigen Kontakt anhand seiner ID.
+ *
+ * contacts.update() liefert nur eine Update-Antwort.
+ * Für vollständige Daten wird der Kontakt erneut abgerufen.
+ */
+export async function getContactById(contactId: string): Promise<Contact> {
+  const {data, error} = await resend.contacts.get({
+    id: contactId,
+  });
+
+  if (error) {
+    throw new Error(
+      getErrorMessage(error, "Resend-Kontakt konnte nicht abgerufen werden"),
+    );
+  }
+
+  if (!data) {
+    throw new Error("Resend-Kontakt wurde nicht gefunden");
+  }
+
+  return {
+    id: data.id,
+    email: data.email,
+    unsubscribed: data.unsubscribed,
+  };
+}
+
+/**
+ * Stellt sicher, dass ein bestätigter Abonnent
+ * als aktiver Kontakt im Newsletter-Segment existiert.
+ *
+ * Nur nach erfolgreicher DOI-Bestätigung verwenden.
+ */
+export async function ensureContactInSegment(
+  email: string,
+  segmentId: string,
+  topicId?: string,
+): Promise<string> {
+  let contact = await findContactByEmail(email);
+
+  if (!contact) {
+    contact = await createContact(email, {
+      segmentId,
+      topicId,
     });
-    if (resp.status === 200 || resp.status === 204) return true;
-    return false;
-  } catch (err) {
-    console.error("removeContactFromSegment failed", err);
-    return false;
+
+    return contact.id;
   }
+
+  // Nur ausführen, wenn vorher eine neue gültige
+  // Newsletter-Einwilligung bestätigt wurde.
+  if (contact.unsubscribed === true) {
+    await setContactUnsubscribed(contact.id, false);
+  }
+
+  await addContactToSegment(contact.id, segmentId);
+
+  return contact.id;
 }
 
-export async function ensureContactInSegment(email: string, segmentId: string) {
-  try {
-    let contact = await findContactByEmail(email);
-    if (!contact) contact = await createContact(email);
-    const contactId =
-      contact?.id ?? contact?.contact_id ?? contact?.providerContactId ?? null;
-    if (!contactId) return null;
-    await addContactToSegment(contactId, segmentId);
-    return contactId;
-  } catch (err) {
-    console.error("ensureContactInSegment failed", err);
-    return null;
-  }
-}
+/**
+ * Entfernt einen Kontakt anhand der E-Mail-Adresse
+ * aus einem Segment.
+ */
+export async function removeEmailFromSegment(
+  email: string,
+  segmentId: string,
+): Promise<boolean> {
+  const contact = await findContactByEmail(email);
 
-export async function removeEmailFromSegment(email: string, segmentId: string) {
-  try {
-    const contact = await findContactByEmail(email);
-    const contactId = contact?.id ?? contact?.contact_id ?? null;
-    if (!contactId) return false;
-    return await removeContactFromSegment(contactId, segmentId);
-  } catch (err) {
-    console.error("removeEmailFromSegment failed", err);
+  if (!contact) {
     return false;
   }
+
+  return removeContactFromSegment(contact.id, segmentId);
 }
 
-export default {
+/**
+ * Meldet einen Resend-Kontakt global ab und
+ * entfernt ihn zusätzlich aus dem Newsletter-Segment.
+ */
+export async function unsubscribeContact(
+  contactId: string,
+  segmentId: string,
+): Promise<void> {
+  await setContactUnsubscribed(contactId, true);
+
+  await removeContactFromSegment(contactId, segmentId);
+}
+
+const resendClient = {
   findContactByEmail,
   createContact,
   addContactToSegment,
   removeContactFromSegment,
+  setContactUnsubscribed,
+  updateContact,
+  getContactById,
   ensureContactInSegment,
   removeEmailFromSegment,
+  unsubscribeContact,
 };
+
+export default resendClient;

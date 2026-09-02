@@ -51,8 +51,8 @@ export default function RootLayout({
         <link
           rel="icon"
           type="image/png"
-          sizes="96x96"
-          href="/favicon-96x96.png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
         />
         <link
           rel="apple-touch-icon"
@@ -72,7 +72,7 @@ export default function RootLayout({
           href="/web-app-manifest-512x512.png"
         />
         <link rel="manifest" href="/manifest.json" />
-        {/* <meta name="theme-color" content="#000000" /> */}
+        <meta name="theme-color" content="#000000" />
         <meta name="description" content={APP_DESCRIPTION} />
       </head>
       <body

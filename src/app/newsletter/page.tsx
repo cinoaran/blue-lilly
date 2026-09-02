@@ -1,12 +1,28 @@
 import React from "react";
+import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
+import NewsletterForm from "@/components/newsletter/NewsletterForm";
 
 export default function NewsletterPage() {
   return (
-    <div className="container mx-auto py-12">
-      <h1 className="text-2xl font-medium">Newsletter</h1>
-      <p className="text-sm text-foreground/60 mt-2">
-        Hier kannst du den Newsletter abonnieren.
-      </p>
-    </div>
+    <main className="container relative mx-auto max-w-3/4">
+      <Breadcrumbs
+        items={[
+          {label: "Home", href: "/"},
+          {label: "Newsletter", href: "/newsletter", active: true},
+        ]}
+      />
+
+      <div className="my-10">
+        <h1 className="text-3xl font-semibold mb-4">Newsletter</h1>
+        <p className="text-sm text-foreground/60 mb-6">
+          Abonniere unseren Newsletter, um exklusive Angebote, Neuigkeiten und
+          Pflegetipps direkt per E‑Mail zu erhalten.
+        </p>
+
+        <div className="w-full">
+          <NewsletterForm />
+        </div>
+      </div>
+    </main>
   );
 }

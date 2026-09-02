@@ -106,14 +106,14 @@ const SearchInput = ({
         Wählen Sie Ihre Kategorie aus:
       </h4>
       <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-        <div className="flex flex-col md:flex-row items-start justify-start gap-4 w-full">
+        <div className="flex flex-col md:flex-row items-start justify-start gap-4 min-w-3xl">
           {categoryOptions && (
             <CategorySelect
               value={categoryPath}
               onChange={(val) =>
                 handleCategoryChange(val === ALL_CATEGORIES_VALUE ? "" : val)
               }
-              className="w-88 md:w-auto"
+              className="w-88 md:w-88"
               showAllOption={true}
               options={categoryOptions}
               disabled={isPending}

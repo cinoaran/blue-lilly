@@ -68,19 +68,21 @@ const ResetForm = () => {
             }
           }
         }
-        setError(`Too many requests. Try again ${wait || "later"}.`);
+        setError(`Sehr viele Anfragen. Versuchen Sie es ${wait || "später"}.`);
         setIsPending(false);
         return;
       }
 
       if (!res.ok) {
-        setError("Password reset failed. Please try again later.");
+        setError(
+          "Passwort zurücksetzen fehlgeschlagen. Bitte versuchen Sie es später erneut.",
+        );
         setIsPending(false);
         return;
       }
 
       setSuccess(
-        "If this email exists, you'll receive password reset instructions shortly.",
+        "Wenn diese E-Mail existiert, erhalten Sie in Kürze Anweisungen zum Zurücksetzen des Passworts.",
       );
       setIsPending(false);
       // Briefly show the neutral success message, then redirect to login
@@ -95,7 +97,9 @@ const ResetForm = () => {
       return;
     } catch (e) {
       console.error("requestPasswordReset fetch error:", e);
-      setError("Password reset failed. Please try again later.");
+      setError(
+        "Passwort zurücksetzen fehlgeschlagen. Bitte versuchen Sie es später erneut.",
+      );
       setIsPending(false);
       return;
     }
@@ -144,7 +148,7 @@ const ResetForm = () => {
         >
           {isPending || !form.formState.isValid
             ? "Waiting..."
-            : "Reset Password"}
+            : "Passwort zurücksetzen"}
           {form.formState.isSubmitting && <Spinner />}
         </Button>
       </form>

@@ -33,8 +33,9 @@ export async function subscribeToNewsletter(formData: FormData) {
     },
   });
   try {
+    const domain = process.env.RESEND_DOMAIN ?? "030web.com";
     const res = await resend.emails.send({
-      from: "Blue Lilly <newletter@030web.com>",
+      from: `Blue Lilly <newsletter@${domain}>`,
       to: email,
       subject: "Bitte bestätige deine Newsletter-Anmeldung",
       html: `<a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/confirm?token=${token}">Anmeldung bestätigen</a>`,

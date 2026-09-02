@@ -5,7 +5,7 @@ import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
 import {headers} from "next/headers";
 
 const MerchantPage = async () => {
-  const hdrs = headers();
+  const hdrs = await headers();
   const data = await getAllMerchants({headers: hdrs});
 
   if (!data) {

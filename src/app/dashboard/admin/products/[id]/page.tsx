@@ -14,7 +14,7 @@ import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
 export default async function EditProductPage(props: unknown) {
   const {params} = props as {params: {id: string}};
   const {id} = await params;
-  const hdrs = headers();
+  const hdrs = await headers();
 
   const [flatCategories, merchants, product] = await Promise.all([
     getAllCategories(undefined, {headers: hdrs}),
