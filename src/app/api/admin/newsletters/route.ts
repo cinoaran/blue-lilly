@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {ensureAndRequire} from "@/acl/acl";
-import {createNewsletterCampaign} from "@/lib/newsletter/campaign-services";
+import {createNewsletterCampaign} from "@/lib/resend-newsletter/campaign-services";
 import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {

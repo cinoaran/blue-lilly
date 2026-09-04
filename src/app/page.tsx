@@ -7,7 +7,7 @@ import {convertDecimalToNumber} from "@/helpers";
 import prisma from "@/lib/prisma";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
-import NewsletterForm from "@/components/newsletter/NewsletterForm";
+import NewsletterForm from "@/components/resend-newsletter/NewsletterForm";
 import ProductsSkeleton from "./(root)/skeletons/ProductsSkeleton";
 // import {sleep} from "@/lib/utils";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";

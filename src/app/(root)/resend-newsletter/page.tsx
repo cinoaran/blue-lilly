@@ -2,13 +2,13 @@ import React from "react";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import NewsletterForm from "@/components/resend-newsletter/NewsletterForm";
 
-export default function NewsletterPage() {
+export default function ResendNewsletterPage() {
   return (
     <main className="container relative mx-auto max-w-3/4">
       <Breadcrumbs
         items={[
           {label: "Home", href: "/"},
-          {label: "Newsletter", href: "/newsletter", active: true},
+          {label: "Newsletter", href: "/resend-newsletter", active: true},
         ]}
       />
 

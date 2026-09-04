@@ -9,7 +9,6 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const email = String(form.get("email") ?? "").trim();
     const consent = form.get("consent") === "on";
-    // basic validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !consent) {
       return NextResponse.json(
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(result);
   } catch (err) {
-    console.error("Error in newsletter subscribe route:", err);
+    console.error("Error in resend subscribe route:", err);
     return NextResponse.json(
       {success: false, message: "Serverfehler."},
       {status: 500},

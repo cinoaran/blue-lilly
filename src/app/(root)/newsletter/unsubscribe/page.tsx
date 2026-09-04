@@ -1,6 +1,6 @@
 import {Card, CardHeader} from "@/components/ui/card";
-import {unsubscribeByToken} from "@/lib/newsletter/service";
-import NewsletterForm from "@/components/newsletter/NewsletterForm";
+import {unsubscribeByToken} from "@/lib/resend-newsletter/service";
+import NewsletterForm from "@/components/resend-newsletter/NewsletterForm";
 import prisma from "@/lib/prisma";
 import crypto from "node:crypto";
 import {getSessionOnce} from "@/lib/session/sessionCache";

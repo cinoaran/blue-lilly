@@ -39,7 +39,7 @@ export default function NewsletterForm({onSuccess, title}: Props) {
       const fd = new FormData();
       fd.set("email", email);
       fd.set("consent", consent ? "on" : "off");
-      const res = await fetch("/api/newsletter/subscribe", {
+      const res = await fetch("/api/resend/subscribe", {
         method: "POST",
         body: fd,
       });

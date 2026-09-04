@@ -1,8 +1,8 @@
 import {Card, CardContent, CardHeader} from "@/components/ui/card";
-import {confirmSubscriberByToken} from "@/lib/newsletter/service";
+import {confirmSubscriberByToken} from "@/lib/resend-newsletter/service";
 import {CheckCircle} from "lucide-react";
 import Link from "next/link";
-import NewsletterForm from "@/components/newsletter/NewsletterForm";
+import NewsletterForm from "@/components/resend-newsletter/NewsletterForm";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {headers} from "next/headers";
 import prisma from "@/lib/prisma";

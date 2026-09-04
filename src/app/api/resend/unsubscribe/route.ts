@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const result = await unsubscribeByUserId(userId);
     return NextResponse.json(result);
   } catch (err) {
-    console.error("Error in newsletter unsubscribe-by-session route:", err);
+    console.error("Error in resend unsubscribe-by-session route:", err);
     return NextResponse.json(
       {success: false, message: "Serverfehler."},
       {status: 500},
