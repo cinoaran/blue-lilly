@@ -1,4 +1,5 @@
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
+import {Card} from "@/components/ui/card";
 
 export default function DatenschutzPage() {
   return (
@@ -10,8 +11,8 @@ export default function DatenschutzPage() {
         ]}
       />
 
-      <div className="max-w-4xl mx-auto py-16 px-6">
-        <h1 className="text-2xl font-bold mb-6">Datenschutzerklärung</h1>
+      <Card className="w-[85vw] md:w-fit mx-auto my-16 p-12">
+        <h2 className="font-bold mb-6">Datenschutzerklärung</h2>
         <p className="mb-4">
           Diese Seite enthält unsere Datenschutzerklärung. Bitte ersetze diesen
           Platzhalter durch den vollständigen Text eurer Datenschutzbelehrung,
@@ -19,18 +20,18 @@ export default function DatenschutzPage() {
           Rechtsgrundlagen, Speicherdauer, Betroffenenrechte und
           Kontaktmöglichkeiten enthalten muss.
         </p>
-        <section className="prose">
-          <h2>Kontakt</h2>
+        <section>
+          <h3 className="font-bold mb-6">Kontakt</h3>
           <p>
             Bei Fragen zum Datenschutz erreichen Sie uns unter: info@example.com
           </p>
-          <h2>Cookies</h2>
+          <h3 className="font-bold my-6">Cookies</h3>
           <p>
             Informationen über eingesetzte Cookies und Zweckbeschreibungen
             gehören hierher.
           </p>
         </section>
-      </div>
+      </Card>
     </main>
   );
 }

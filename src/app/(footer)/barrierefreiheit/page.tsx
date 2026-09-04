@@ -1,4 +1,5 @@
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
+import {Card} from "@/components/ui/card";
 
 export default function BarrierefreiheitPage() {
   return (
@@ -10,19 +11,21 @@ export default function BarrierefreiheitPage() {
         ]}
       />
 
-      <div className="max-w-4xl mx-auto py-16 px-6">
-        <h1 className="text-2xl font-bold mb-6">Barrierefreiheit</h1>
-        <p className="mb-4">
+      <Card className="w-[85vw] md:w-fit mx-auto my-16 p-12">
+        <h2 className="font-bold mb-6">Barrierefreiheit</h2>
+        <p className="mb-6">
           Platzhalterseite zur Barrierefreiheit. Beschreibe hier, welche
           Maßnahmen zur Zugänglichkeit der Website getroffen wurden.
         </p>
-        <section className="prose">
-          <h2>Kontrast &amp; Navigation</h2>
+        <section>
+          <h3 className="font-bold mb-6">Kontrast &amp; Navigation</h3>
           <p>Informationen zur Kontrastgestaltung und Tastatur‑Navigation.</p>
-          <h2>Kontakt für Barrierefreiheits‑Anfragen</h2>
+          <h3 className="font-bold my-6">
+            Kontakt für Barrierefreiheits‑Anfragen
+          </h3>
           <p>E-Mail: accessibility@example.com</p>
         </section>
-      </div>
+      </Card>
     </main>
   );
 }

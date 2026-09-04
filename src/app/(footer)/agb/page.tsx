@@ -1,4 +1,5 @@
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
+import {Card} from "@/components/ui/card";
 
 export default function AgbPage() {
   return (
@@ -9,19 +10,19 @@ export default function AgbPage() {
           {label: "AGB", href: "/agb", active: true},
         ]}
       />
-      <div className="max-w-4xl mx-auto py-16 px-6">
-        <h1 className="text-2xl font-bold mb-6">AGB</h1>
-        <p className="mb-4">
+      <Card className="w-[85vw] md:w-fit mx-auto my-16 p-12">
+        <h2 className="font-bold mb-6">AGB</h2>
+        <p className="mb-6">
           Allgemeine Geschäftsbedingungen (AGB) – Platzhaltertext. Bitte ergänze
           hier die vollständigen Geschäftsbedingungen deines Shops.
         </p>
-        <section className="prose">
-          <h2>Leistungsbeschreibung</h2>
+        <section>
+          <h3 className="font-bold mb-6">Leistungsbeschreibung</h3>
           <p>Beschreibung der angebotenen Produkte und Dienstleistungen.</p>
-          <h2>Vertragsabschluss</h2>
+          <h3 className="font-bold my-6">Vertragsabschluss</h3>
           <p>Informationen zum Zustandekommen des Vertrags.</p>
         </section>
-      </div>
+      </Card>
     </main>
   );
 }

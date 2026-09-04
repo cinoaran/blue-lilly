@@ -80,63 +80,77 @@ export default async function SuccessPage({searchParams}: Props) {
   // cookie clearing is done client-side by calling the route `/api/cart/clear`
 
   return (
-    <div className="container bg-card/80 rounded mx-auto p-4">
+    <div className="container bg-card/80 mx-auto rounded-md my-12 p-12">
       <ClearCartClient />
-      <h1>Danke für deine Bestellung</h1>
-      <div style={{fontSize: 12, color: "#666"}}>
-        Debug: attempting client-side cart cookie clear via /api/cart/clear
-      </div>
+      <h1 className="text-4xl font-bold py-10">
+        Danke für deine Bestellung
+        {session.customer_details?.name
+          ? `, ${session.customer_details.name}`
+          : ""}
+      </h1>
       <p>Session Status: {session.status}</p>
       <p>Zahlungsstatus: {session.payment_status}</p>
 
       {order ? (
-        <div className="mt-4">
-          <h2>Bestellübersicht</h2>
-          <ul>
-            {order.items.map((it) => {
-              const img =
-                it.imageAtOrder ??
-                it.option?.image?.[0] ??
-                (it.optionId
-                  ? (fallbackOptionImages[it.optionId] ?? null)
-                  : null);
-              const title =
-                it.option?.variant?.product?.name ??
-                it.option?.variant?.size ??
-                "Artikel";
-              return (
-                <li
-                  key={it.id}
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  {img ? (
-                    // plain img is fine here; replace with next/image if desired
-                    // ensure image URL is trusted / proxied if needed
-                    // width/height omitted to keep it simple
-                    <Image
-                      src={img}
-                      alt={title}
-                      width={80}
-                      height={80}
-                      style={{objectFit: "cover"}}
-                    />
-                  ) : (
-                    <div style={{width: 80, height: 80, background: "#eee"}} />
-                  )}
-                  <div>
-                    <div>{title}</div>
-                    <div>Menge: {it.quantity}</div>
-                    <div>Preis: {(it.priceAtOrder / 100).toFixed(2)} €</div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+        <div className="flex flex-col md:flex-row items-start justify-start gap-5 md:gap-12 mt-6 space-y-12">
+          <div>
+            <h3 className="text-2xl font-bold mb-4">Bestellübersicht</h3>
+            <ul>
+              {order.items.map((it) => {
+                const img =
+                  it.imageAtOrder ??
+                  it.option?.image?.[0] ??
+                  (it.optionId
+                    ? (fallbackOptionImages[it.optionId] ?? null)
+                    : null);
+                const title =
+                  it.option?.variant?.product?.name ??
+                  it.option?.variant?.size ??
+                  "Artikel";
+                return (
+                  <li
+                    key={it.id}
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {img ? (
+                      // plain img is fine here; replace with next/image if desired
+                      // ensure image URL is trusted / proxied if needed
+                      // width/height omitted to keep it simple
+                      <Image
+                        src={img}
+                        alt={title}
+                        width={80}
+                        height={80}
+                        style={{objectFit: "cover"}}
+                      />
+                    ) : (
+                      <div
+                        style={{width: 80, height: 80, background: "#eee"}}
+                      />
+                    )}
+                    <div>
+                      <div>{title}</div>
+                      <div>Menge: {it.quantity}</div>
+                      <div>Preis: {(it.priceAtOrder / 100).toFixed(2)} €</div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div>
+            <h3>Weitere Informationen</h3>
+            <p>Bestellnummer: {order.id}</p>
+            <p>Erstellt am: {new Date(order.createdAt).toLocaleDateString()}</p>
+            <p>Gesamtbetrag: {(order.totalAmount / 100).toFixed(2)} €</p>
+            <p>Währung: {order.currency}</p>
+            <p>Lieferadresse: {session.billing_address_collection}</p>
+          </div>
         </div>
       ) : (
         <p>Keine Bestelldaten gefunden.</p>

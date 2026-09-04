@@ -101,42 +101,40 @@ const SearchInput = ({
   };
 
   return (
-    <form className="space-y-5 md:min-w-full" onSubmit={handleSearch}>
+    <form className="space-y-5" onSubmit={handleSearch}>
       <h4 className="text-left text-foreground">
         Wählen Sie Ihre Kategorie aus:
       </h4>
-      <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-        <div className="flex flex-col md:flex-row items-start justify-start gap-4 min-w-3xl">
-          {categoryOptions && (
-            <CategorySelect
-              value={categoryPath}
-              onChange={(val) =>
-                handleCategoryChange(val === ALL_CATEGORIES_VALUE ? "" : val)
-              }
-              className="w-88 md:w-88"
-              showAllOption={true}
-              options={categoryOptions}
-              disabled={isPending}
-            />
-          )}
-          <div className="flex items-center justify-start gap-2 w-88 md:w-full">
-            <Input
-              type="search"
-              placeholder="Schnellsuche Outdoor, Jacken, Schuhe, etc."
-              className={`webkit-search-cancel-button:appearance-none overflow-hidden border rounded-md px-3 py-3 text-base text-foreground inset-0 border-primary/35 shadow-none data-placeholder:italic data-placeholder:text-foreground/50 ${
-                isPending ? "opacity-50 pointer-events-none" : ""
-              }`}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <Button
-              variant="default"
-              type="submit"
-              className="flex justify-center hover:scale-105 transition-transform"
-            >
-              <Search size={20} />
-            </Button>
-          </div>
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-10">
+        {categoryOptions && (
+          <CategorySelect
+            value={categoryPath}
+            onChange={(val) =>
+              handleCategoryChange(val === ALL_CATEGORIES_VALUE ? "" : val)
+            }
+            className="w-88 md:w-88"
+            showAllOption={true}
+            options={categoryOptions}
+            disabled={isPending}
+          />
+        )}
+        <div className="flex items-center justify-start gap-2 w-full">
+          <Input
+            type="search"
+            placeholder="Schnellsuche Outdoor, Jacken, Schuhe, etc."
+            className={`webkit-search-cancel-button:appearance-none overflow-hidden border rounded-md px-3 py-3 text-base text-foreground inset-0 border-primary/35 shadow-none data-placeholder:italic data-placeholder:text-foreground/50 ${
+              isPending ? "opacity-50 pointer-events-none" : ""
+            }`}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Button
+            variant="default"
+            type="submit"
+            className="flex justify-center hover:scale-105 transition-transform"
+          >
+            <Search size={20} />
+          </Button>
         </div>
       </div>
     </form>

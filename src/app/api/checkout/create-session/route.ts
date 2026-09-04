@@ -1,6 +1,5 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
-import {auth} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {createStripeCheckout} from "@/lib/Stripe/orders";
 import {toStripeAmount} from "@/lib/Stripe/client";
@@ -228,10 +227,11 @@ export async function POST(req: Request) {
 
     // 4. Order anlegen (mit userId oder null)
     // Create order without nested items first, then create items separately
-    const order = await prisma.order.create({
+    let order = await prisma.order.create({
       data: {
         user: userId ? {connect: {id: userId}} : undefined,
-        cart: {connect: {id: cart.id}},
+        // schema expects cartId (scalar) rather than a relation connect for cart
+        cartId: cart.id,
         status: "PENDING",
         itemsTotal: itemsTotalCents,
         shippingCost: shippingCents,
@@ -250,6 +250,9 @@ export async function POST(req: Request) {
           ? toPrismaJson(billingSnapshot)
           : undefined,
       } as Prisma.OrderCreateInput,
+      include: {
+        items: true,
+      },
     });
 
     // Create order items referencing the created order
@@ -274,33 +277,80 @@ export async function POST(req: Request) {
       await prisma.orderItem.createMany({data: itemsToCreate});
     }
 
-    // re-fetch order with items
+    // re-fetch order with items so downstream code has access to order.items
     const orderWithItems = await prisma.order.findUnique({
       where: {id: order.id},
       include: {items: true},
     });
 
     // replace order variable with orderWithItems for downstream usage
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // @ts-ignore
-    const createdOrder = orderWithItems ?? order;
+    order = orderWithItems ?? order;
 
     console.info("creating stripe checkout", {
       orderId: order.id,
       userId,
       finalBillingId,
       finalShippingId,
+      itemsCount: order.items.length,
     });
 
-    const url = await createStripeCheckout({
-      orderId: order.id,
-      userId: userId ?? undefined,
-      shippingAddressId: finalShippingId ?? undefined,
-      billingAddressId: finalBillingId ?? undefined,
-      guestEmail: !userId
-        ? (shipping?.email ?? billing?.email ?? undefined)
-        : undefined,
-    });
+    // Basic sanity checks before contacting Stripe
+    if (!order.items || order.items.length === 0) {
+      console.error("create-session: order has no items", {orderId: order.id});
+      return NextResponse.json({error: "Order has no items"}, {status: 400});
+    }
+
+    for (const it of order.items) {
+      if (
+        typeof it.priceAtOrder !== "number" ||
+        Number.isNaN(it.priceAtOrder)
+      ) {
+        console.error("create-session: invalid item price", {
+          orderId: order.id,
+          item: it,
+        });
+        return NextResponse.json(
+          {error: "Invalid order item price"},
+          {status: 500},
+        );
+      }
+      if (typeof it.quantity !== "number" || it.quantity <= 0) {
+        console.error("create-session: invalid item quantity", {
+          orderId: order.id,
+          item: it,
+        });
+        return NextResponse.json(
+          {error: "Invalid order item quantity"},
+          {status: 500},
+        );
+      }
+    }
+
+    let url: string;
+    try {
+      url = await createStripeCheckout({
+        orderId: order.id,
+        userId: userId ?? undefined,
+        shippingAddressId: finalShippingId ?? undefined,
+        billingAddressId: finalBillingId ?? undefined,
+        guestEmail: !userId
+          ? (shipping?.email ?? billing?.email ?? undefined)
+          : undefined,
+      });
+    } catch (stripeErr) {
+      console.error(
+        "create-session: stripe/create checkout failed",
+        stripeErr,
+        {
+          orderId: order.id,
+        },
+      );
+      // return 502 to indicate upstream service failure
+      return NextResponse.json(
+        {error: "Payment provider error"},
+        {status: 502},
+      );
+    }
 
     console.info("stripe checkout created, redirect url", url);
 

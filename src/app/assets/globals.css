@@ -260,6 +260,10 @@
     text-rendering: optimizeLegibility;
   }
 
+  .comfortaa {
+    font-family: var(--font-comfortaa), var(--font-sans-family), sans-serif;
+  }
+
   main {
     min-height: 100vh;
   }
@@ -270,7 +274,7 @@
   h4 {
     margin: 0;
     color: var(--foreground);
-    font-family: var(--font-display-family), serif;
+    font-family: var(--font-comfortaa), sans-serif;
     font-weight: 600;
     letter-spacing: -0.015em;
   }

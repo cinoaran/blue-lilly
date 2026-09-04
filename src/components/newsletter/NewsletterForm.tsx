@@ -3,6 +3,10 @@ import React, {useEffect, useState} from "react";
 import {isDisposableEmail} from "@/lib/disposable-email-check";
 import {Input} from "../ui/input";
 import {Gift} from "lucide-react";
+import {Button} from "../ui/button";
+import Link from "next/link";
+import SuccessToast from "@/components/shared/customToast/SuccessToast";
+import ErrorToast from "@/components/shared/customToast/ErrorToast";
 
 type Props = {
   onSuccess?: () => void;
@@ -84,15 +88,15 @@ export default function NewsletterForm({onSuccess, title}: Props) {
   }, [email]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-6 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-72 w-full overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 md:h-72 w-full overflow-hidden p-4">
       <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
 
       {title === null ? null : (
-        <h3 className="text-lg font-semibold text-left">
+        <span className="font-normal text-left text-md md:text-lg">
           {typeof title === "string"
             ? title
             : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang."}
-        </h3>
+        </span>
       )}
 
       <form
@@ -109,15 +113,15 @@ export default function NewsletterForm({onSuccess, title}: Props) {
             className="flex-1 p-6 rounded"
             required
           />
-          <button
+          <Button
             type="submit"
             disabled={loading || !!emailError || !consent}
             className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
           >
             {loading ? "..." : "Anmelden"}
-          </button>
+          </Button>
         </div>
-        <label className="flex items-center gap-2 mt-2 text-sm">
+        <label className="flex items-center gap-4 mt-8 text-sm">
           <input
             type="checkbox"
             className="w-4 h-4 bg-primary cursor-pointer"
@@ -125,20 +129,32 @@ export default function NewsletterForm({onSuccess, title}: Props) {
             onChange={(e) => setConsent(e.target.checked)}
             required
           />
-          Ich möchte den Newsletter erhalten und stimme der Datenschutzerklärung
-          zu.
+          <span className="text-foreground">
+            Ich möchte den Newsletter erhalten und stimme der
+            <Link
+              href="/datenschutzerklarung"
+              className="text-primary underlined px-1"
+            >
+              Datenschutzerklärung
+            </Link>
+            zu.
+          </span>
         </label>
         <div className="my-2 flex flex-col justify-center">
           {emailError ? (
-            <span className="bg-destructive p-4 my-4 mt-2 text-sm">
-              Email Validierung fehlgeschlagen
-            </span>
+            <ErrorToast
+              message={emailError}
+              duration={4000}
+              onClose={() => setEmailError(null)}
+            />
           ) : null}
         </div>
         {message && (
-          <>
-            <span className="bg-success p-4 my-4 mt-2 text-sm">{message}</span>
-          </>
+          <SuccessToast
+            message={message}
+            duration={4000}
+            onClose={() => setMessage(null)}
+          />
         )}
       </form>
     </div>

@@ -1,5 +1,5 @@
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
-import ProductsSkeleton from "@/app/skeletons/ProductsSkeleton";
+import ProductsSkeleton from "@/app/(root)/skeletons/ProductsSkeleton";
 
 export default function Loading() {
   return (

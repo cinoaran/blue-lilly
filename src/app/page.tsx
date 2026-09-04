@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
 import NewsletterForm from "@/components/newsletter/NewsletterForm";
-import ProductsSkeleton from "./skeletons/ProductsSkeleton";
+import ProductsSkeleton from "./(root)/skeletons/ProductsSkeleton";
 // import {sleep} from "@/lib/utils";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import SearchInput from "@/components/shared/searchBar";
@@ -43,7 +43,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
       (p) => convertDecimalToNumber(p) as unknown,
     );
     return ((safeProducts as ProductWithVariants[]) || []).length === 0 ? (
-      <div className="max-w-[85vw] mx-auto flex items-center justify-center py-12">
+      <div className="max-w-[85vw] mx-auto flex items-center justify-center py-4">
         <div className="text-center bg-secondary/50 border border-foreground/10 rounded-md p-6">
           <h3 className="text-lg font-medium">
             Aktuell befinden sich keine Produkte zur Auswahl
@@ -91,7 +91,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
             </div>
           }
         >
-          <h3 className="w-full text-left font-thin text-4xl  md:text-6xl text-foreground">
+          <h3 className="w-full text-left font-thin text-4xl  md:text-5xl text-foreground">
             Search Products
           </h3>
           <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-10 z-10">

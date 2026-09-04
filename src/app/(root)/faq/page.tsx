@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import {Card} from "@/components/ui/card";
 
 const FaqPage = () => {
   return (
@@ -17,7 +18,7 @@ const FaqPage = () => {
         ]}
       />
 
-      <div aria-label="FAQ" className="my-10">
+      <Card className="w-[85vw] md:w-fit mx-auto my-16 p-12">
         <h1 className="text-3xl font-semibold mb-6">Häufige Fragen (FAQ)</h1>
 
         <Accordion type="single" collapsible className="w-full">
@@ -98,7 +99,7 @@ const FaqPage = () => {
             </AccordionItem>
           </div>
         </Accordion>
-      </div>
+      </Card>
     </main>
   );
 };

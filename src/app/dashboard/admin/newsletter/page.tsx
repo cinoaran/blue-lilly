@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import CreateCampaignForm from "./CreateCampaignForm";
-import CampaignsGrid from "./CampaignsGrid";
+import CreateCampaignForm from "./_components/CreateCampaignForm";
+import CampaignsGrid from "./_components/CampaignsGrid";
 
 const NewsletterPage = () => {
   const [reloadKey, setReloadKey] = React.useState(0);

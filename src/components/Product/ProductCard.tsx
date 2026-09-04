@@ -189,7 +189,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
       <CardContent className="w-full flex-1">
         {/*Image & Preis*/}
         <Link href={href}>
-          <div className="bg-white relative aspect-5/6 rounded-t-2xl overflow-hidden my-2">
+          <div className="relative aspect-5/6 rounded-t-2xl overflow-hidden my-2">
             <Image
               src={displayedImage}
               alt={altText}
