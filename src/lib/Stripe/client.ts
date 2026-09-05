@@ -1,16 +1,35 @@
 import Stripe from "stripe";
 
-const stripeKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY;
-
-if (!stripeKey) {
-  throw new Error(
-    "STRIPE secret key is missing (STRIPE_SECRET_KEY or STRIPE_API_KEY)",
-  );
+// Lazy-initialize Stripe so importing this module doesn't throw when env vars are missing.
+let _stripe: Stripe | null = null;
+function initStripe(): Stripe {
+  if (_stripe) return _stripe;
+  const stripeKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY;
+  if (!stripeKey) {
+    throw new Error(
+      "Missing Stripe secret key. Set STRIPE_SECRET_KEY or STRIPE_API_KEY in the environment.",
+    );
+  }
+  _stripe = new Stripe(stripeKey, {
+    apiVersion: "2026-07-29.dahlia",
+    typescript: true,
+  });
+  return _stripe;
 }
 
-export const stripe = new Stripe(stripeKey, {
-  apiVersion: "2026-07-29.dahlia",
-  typescript: true,
+// Export a proxy that initializes Stripe on first access. This prevents import-time
+// exceptions while preserving the original `stripe` usage API.
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_, prop: string | symbol) {
+    const s = initStripe();
+    // @ts-expect-error dynamic property access
+    return s[prop as keyof Stripe];
+  },
+  apply(_, __, args) {
+    const s = initStripe();
+    // @ts-expect-error
+    return (s as any).apply(undefined, args);
+  },
 });
 
 /**

@@ -232,7 +232,7 @@ export async function POST(req: Request) {
         user: userId ? {connect: {id: userId}} : undefined,
         // schema expects cartId (scalar) rather than a relation connect for cart
         cartId: cart.id,
-        status: "PENDING",
+        status: "PENDING_PAYMENT",
         itemsTotal: itemsTotalCents,
         shippingCost: shippingCents,
         totalAmount: totalCents,

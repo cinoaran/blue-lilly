@@ -56,10 +56,11 @@ enum CartStatus {
 }
 
 enum OrderStatus {
-  PENDING
+  PENDING_PAYMENT
   PAID
-  FAILED
+  PAYMENT_FAILED
   CANCELLED
+  OUT_OF_STOCK
   REFUNDED
 }
 
@@ -347,7 +348,7 @@ model Order {
 
   cartId String?
 
-  status OrderStatus @default(PENDING)
+  status OrderStatus @default(PENDING_PAYMENT)
 
   itemsTotal   Int
   shippingCost Int
