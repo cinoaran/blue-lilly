@@ -24,7 +24,7 @@ export async function createCheckoutAction({
 
   // Call the server API to create the order and Stripe session so the
   // server can read cookies and session headers reliably.
-  const res = await fetch("/api/checkout/create-session", {
+  const res = await fetch("/api/stripe/checkout/create-session", {
     method: "POST",
     credentials: "same-origin",
     headers: {"Content-Type": "application/json"},

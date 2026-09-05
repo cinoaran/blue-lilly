@@ -3,7 +3,7 @@ import {stripe} from "@/lib/Stripe/client";
 import prisma from "@/lib/prisma";
 import {convertDecimalToNumber} from "@/helpers";
 import Image from "next/image";
-import ClearCartClient from "@/components/cart/ClearCartClient";
+import ClearCartClient from "../_components/ClearCartClient";
 
 type Props = {
   searchParams: Promise<{session_id?: string; orderId?: string}>;

@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {ensureAndRequire} from "@/acl/acl";
-import {sendNewsletterCampaign} from "@/lib/resend-newsletter/campaign-services";
+import {sendNewsletterCampaign} from "@/lib/resend/campaign-services";
 
 type RouteContext = {
   params: Promise<{id: string}>;

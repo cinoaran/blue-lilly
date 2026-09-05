@@ -231,7 +231,7 @@ export default function ProductForm({
         if (result.product) {
           try {
             const mapped = mapPrismaToFormData(
-              result.product as ProductFormData,
+              result.product as unknown as ProductFormData,
             );
             form.reset(mapped);
           } catch (e) {

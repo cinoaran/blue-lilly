@@ -1,4 +1,4 @@
-import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
+import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
 import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
 import {headers} from "next/headers";
 import {ensureAndRequire} from "@/acl/acl";

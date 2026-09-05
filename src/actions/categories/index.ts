@@ -1,10 +1,7 @@
 import prisma from "@/lib/prisma";
 import {
   buildCategoryTree,
-  getCategoryDescendantIds,
   mapCategoryTreeToSearchOptions,
-  type FlatCategory,
-  type SearchOption,
 } from "@/lib/category/categoryTree";
 
 export async function getAllCategories() {

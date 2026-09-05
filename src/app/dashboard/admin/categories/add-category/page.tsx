@@ -1,5 +1,5 @@
-import {addNewCategoryAction} from "@/actions/admin/categories/addNewCategoryAction";
-import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
+import {addNewCategory} from "@/app/dashboard/admin/categories/actions/addNewCategory";
+import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
 import CategoryForm from "@/app/dashboard/admin/categories/_components/CategoryForm";
 import {Category} from "@/types/category/category";
 
@@ -17,7 +17,7 @@ const AddCategory = async ({searchParams}: AddCategoryPageProps) => {
     parentId?: string;
   }) {
     "use server";
-    await addNewCategoryAction(values);
+    await addNewCategory(values.name, values.slug, values.parentId);
   }
 
   return (

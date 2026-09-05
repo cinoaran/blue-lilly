@@ -101,7 +101,11 @@ export async function getAllProducts(skips: {skip: number; limit: number}) {
   }
 }
 
-export async function getProductsBySlug(slug: string): Promise<Product | null> {
+export async function getProductsBySlug(
+  slug: string,
+): Promise<Prisma.ProductGetPayload<{
+  include: {category: true; variants: {include: {options: true}}};
+}> | null> {
   const decoded = decodeURIComponent(slug);
   const normalized = decoded.trim().toLowerCase();
   if (!slug) return null;

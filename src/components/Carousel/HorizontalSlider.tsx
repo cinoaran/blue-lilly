@@ -1,6 +1,7 @@
 import getPublicCarousel from "@/actions/carousel/getPublicCarousel";
 import HorizontalSliderClient from "./HorizontalSliderClient";
 import Image from "next/image";
+import Link from "next/link";
 
 export default async function HeaderCarousel() {
   const slides = await getPublicCarousel();
@@ -40,13 +41,13 @@ export default async function HeaderCarousel() {
         <div className="flex flex-col items-center justify-center w-full -mt-20 z-20">
           <ul className="flex items-start justify-center gap-5 md:gap-10 text-foreground hover:underlined">
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              Kids
+              <Link href="/search/kids">Kids</Link>
             </li>
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              Teens
+              <Link href="/search/teens">Teens</Link>
             </li>
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              Adults
+              <Link href="/search/adults">Adults</Link>
             </li>
           </ul>
         </div>

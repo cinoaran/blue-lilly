@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {createPendingSubscriber} from "@/lib/resend-newsletter/service";
+import {createPendingSubscriber} from "@/lib/resend/service";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {defaultLimiter} from "@/lib/rateLimiter";
 import {isDisposableEmail} from "@/lib/disposable-email-check";

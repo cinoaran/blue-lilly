@@ -4,7 +4,7 @@ import {ensureSession} from "@/acl/acl";
 
 import {ModeToggle} from "@/components/shared/mode/ToggleTheme";
 import {headers} from "next/headers";
-import {NavbarCart} from "../navbarCart";
+import {NavbarCart} from "@/app/(root)/cart/_components/navbarCart";
 import Logo from "../logo/Logo";
 
 const Header = async () => {

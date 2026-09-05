@@ -9,7 +9,7 @@ import {
 } from "@/types/product/productFormData";
 import {getProductById} from "@/actions/admin/products";
 import {convertDecimalToNumber} from "@/helpers";
-import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
+import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
 
 export default async function EditProductPage(props: unknown) {
   const {params} = props as {params: {id: string}};
@@ -23,7 +23,7 @@ export default async function EditProductPage(props: unknown) {
   ]);
 
   const normalizedProduct = product
-    ? (convertDecimalToNumber(product) as ProductFormData)
+    ? (convertDecimalToNumber(product) as unknown as ProductFormData)
     : undefined;
 
   return (

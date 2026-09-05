@@ -3,7 +3,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {AddToCartForm} from "@/components/cart/AddToCartForm";
+import {AddToCartForm} from "./_components/AddToCartForm";
 import {useSearchParams} from "next/navigation";
 
 import {ProductWithCategoryAndVariants} from "@/types/product/product";
@@ -113,25 +113,9 @@ const ProductDetail = ({
   );
 
   useEffect(() => {
-    // If server provided a non-null cart, don't fetch. Otherwise fetch.
-    if (initialCart != null) return; // server provided cart
-    let canceled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/cart");
-        if (!res.ok) return setClientCart(null);
-        const json = await res.json();
-        if (canceled) return;
-        setClientCart(json?.cart ?? null);
-      } catch (e) {
-        if (canceled) return;
-        console.error("Failed to fetch cart:", e);
-        setClientCart(null);
-      }
-    })();
-    return () => {
-      canceled = true;
-    };
+    // Use only the server-provided `initialCart`. If the server didn't provide
+    // it, treat as empty (null). This removes client-side dependency on /api/cart.
+    setClientCart(initialCart ?? null);
   }, [initialCart]);
 
   // Build a map of optionId -> quantity already in cart (server or client)
@@ -228,6 +212,9 @@ const ProductDetail = ({
                     <button
                       key={`${img}-${index}`}
                       type="button"
+                      className={`rounded-md overflow-hidden ${
+                        isActive ? "ring-2 ring-primary/60" : ""
+                      }`}
                       onClick={() => {
                         const next =
                           activeImages[index] ?? "/product/shirt.svg";
@@ -238,16 +225,13 @@ const ProductDetail = ({
                           setIsFading(false);
                         }, 180);
                       }}
-                      className={`relative aspect-square overflow-hidden rounded-md ${
-                        isActive ? "ring-3 ring-primary/70" : ""
-                      }`}
                     >
                       <Image
                         src={img}
-                        alt={`${product.name} ${index + 1}`}
-                        fill
-                        sizes="(min-width: 768px) 50vw, 70vw"
-                        className="object-cover border-[0.5px] border-border rounded-md transition-transform duration-200 hover:scale-105"
+                        alt={`${product.name} thumbnail ${index}`}
+                        className="object-cover w-full h-full"
+                        width={60}
+                        height={60}
                       />
                     </button>
                   );

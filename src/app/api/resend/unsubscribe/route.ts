@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {getSessionOnce} from "@/lib/session/sessionCache";
-import {unsubscribeByUserId} from "@/lib/resend-newsletter/service";
+import {unsubscribeByUserId} from "@/lib/resend/service";
 
 export async function POST(req: Request) {
   try {

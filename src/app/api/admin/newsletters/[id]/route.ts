@@ -1,12 +1,13 @@
 import {NextRequest, NextResponse} from "next/server";
 import {ensureAndRequire} from "@/acl/acl";
-import {updateNewsletterCampaign} from "@/lib/resend-newsletter/campaign-services";
+import {updateNewsletterCampaign} from "@/lib/resend/campaign-services";
 
 export async function PATCH(request: NextRequest, context: any) {
   try {
     await ensureAndRequire(undefined, "admin:access");
     const params = context?.params;
-    const resolvedParams = params && typeof params.then === "function" ? await params : params;
+    const resolvedParams =
+      params && typeof params.then === "function" ? await params : params;
     const id = resolvedParams?.id;
     const body = await request.json();
 

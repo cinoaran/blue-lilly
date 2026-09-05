@@ -2,6 +2,7 @@ import {notFound} from "next/navigation";
 import {getProductsBySlug} from "@/actions/products";
 import {getAllCategories} from "@/actions/categories";
 import {convertDecimalToNumber} from "@/helpers";
+import {getCart} from "@/app/(root)/cart/actions/getCarts";
 import {ProductWithCategoryAndVariants} from "@/types/product/product";
 import {Category} from "@/types/category/category";
 import ProductDetail from "@/components/Product/ProductDetail";
@@ -12,7 +13,9 @@ const ProductPage = async ({params}: {params: Promise<{slug: string}>}) => {
   const {slug} = await params;
   const product = await getProductsBySlug(slug);
   const safeProduct = product
-    ? (convertDecimalToNumber(product) as ProductWithCategoryAndVariants)
+    ? (convertDecimalToNumber(
+        product,
+      ) as unknown as ProductWithCategoryAndVariants)
     : null;
 
   if (!safeProduct) {
@@ -50,9 +53,9 @@ const ProductPage = async ({params}: {params: Promise<{slug: string}>}) => {
   ];
   // await sleep(4000); // Simulate loading delay
 
-  // Don't fetch cart on the server here to keep this page static.
-  // The client component will fetch the cart via `/api/cart` when needed.
-  const serializableCart = null;
+  // Load cart server-side and pass as initial prop to the client component.
+  const cart = await getCart();
+  const serializableCart = cart ? convertDecimalToNumber(cart) : null;
 
   return (
     <div className="mx-auto max-w-[95vw] p-5">
