@@ -1,5 +1,4 @@
 import {createUploadthing, type FileRouter} from "uploadthing/next";
-import {auth} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 
 const f = createUploadthing();

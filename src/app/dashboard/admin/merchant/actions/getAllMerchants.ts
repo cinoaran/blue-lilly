@@ -27,3 +27,5 @@ export async function getAllMerchants(
 
   return merchants;
 }
+
+export default getAllMerchants;

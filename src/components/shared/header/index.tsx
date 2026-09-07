@@ -5,6 +5,7 @@ import {ensureSession} from "@/acl/acl";
 import {ModeToggle} from "@/components/shared/mode/ToggleTheme";
 import {headers} from "next/headers";
 import {NavbarCart} from "@/app/(root)/cart/_components/navbarCart";
+import {NavbarWishlist} from "@/app/(root)/wishlist/_components/navbarWishlist";
 import Logo from "../logo/Logo";
 
 const Header = async () => {
@@ -33,6 +34,7 @@ const Header = async () => {
         <div className="flex items-center justify-center gap-4">
           <ModeToggle />
           <NavbarCart />
+          <NavbarWishlist />
           <SheetNavigation session={session} />
         </div>
       </nav>

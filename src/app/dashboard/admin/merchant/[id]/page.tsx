@@ -1,9 +1,6 @@
 import MerchantForm from "../_components/MerchantForm";
-import {updateMerchant} from "@/actions/admin/merchant/update";
-import {
-  createMerchant,
-  CreateMerchantInput,
-} from "@/actions/admin/merchant/create";
+import {updateMerchant} from "../actions/update";
+import {createMerchant, CreateMerchantInput} from "../actions/create";
 import prisma from "@/lib/prisma";
 import {notFound} from "next/navigation";
 

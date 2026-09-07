@@ -36,7 +36,7 @@ export default function MerchantForm({
 }: {
   onSubmit: (values: MerchantFormValues) => Promise<void> | void;
   submitLabel?: string;
-  initialValues?: import("@/actions/admin/merchant/create").CreateMerchantInput;
+  initialValues?: import("../actions/create").CreateMerchantInput;
 }) {
   const defaultVals: Partial<MerchantFormValues> = initialValues
     ? {

@@ -2,9 +2,9 @@
 
 import React, {useState, startTransition, useRef, ChangeEvent} from "react";
 import {useRouter} from "next/navigation";
-import createCarousel from "@/actions/admin/carousel/createCarousel";
-import updateCarousel from "@/actions/admin/carousel/updateCarousel";
-import deleteCarousel from "@/actions/admin/carousel/deleteCarousel";
+import createCarousel from "../actions/createCarousel";
+import updateCarousel from "../actions/updateCarousel";
+import deleteCarousel from "../actions/deleteCarousel";
 import {useUploadThing} from "@/uploadthing/uploadthing";
 import Image from "next/image";
 

@@ -1,4 +1,4 @@
-import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
+import {getAllMerchants} from "../../merchant/actions/getAllMerchants";
 import {headers} from "next/headers";
 
 import ProductForm from "../_components/ProductForm";
@@ -7,7 +7,7 @@ import {
   Merchant,
   ProductFormData,
 } from "@/types/product/productFormData";
-import {getProductById} from "@/actions/admin/products";
+import {getProductById} from "../actions/getProductById";
 import {convertDecimalToNumber} from "@/helpers";
 import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
 

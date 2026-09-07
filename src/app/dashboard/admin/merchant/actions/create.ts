@@ -42,3 +42,5 @@ export async function createMerchant(data: CreateMerchantInput) {
   });
   return merchant;
 }
+
+export default createMerchant;

@@ -34,13 +34,9 @@ type ResendErrorLike = {
 };
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  if (
-    error &&
-    typeof error === "object" &&
-    "message" in error &&
-    typeof (error as any).message === "string"
-  ) {
-    return (error as any).message;
+  if (error && typeof error === "object" && "message" in error) {
+    const maybe = error as {message?: unknown};
+    if (typeof maybe.message === "string") return maybe.message;
   }
 
   return fallback;
@@ -50,7 +46,6 @@ function isNotFoundError(error: unknown): boolean {
   if (!error || typeof error !== "object") {
     return false;
   }
-
   const apiError = error as ResendErrorLike;
 
   return (

@@ -12,9 +12,9 @@ export function convertDecimalToNumber<T>(obj: T): T {
   }
 
   if (obj && typeof obj === "object") {
-    const newObj: Record<string, any> = {};
-    for (const key in obj as Record<string, any>) {
-      const value = (obj as Record<string, any>)[key];
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj as Record<string, unknown>) {
+      const value = (obj as Record<string, unknown>)[key];
       type DecimalLike = {
         toNumber?: () => number | string;
         toString?: () => string;

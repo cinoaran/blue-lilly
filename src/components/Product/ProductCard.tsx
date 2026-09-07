@@ -10,6 +10,7 @@ import Link from "next/link";
 import React, {useMemo, useRef, useState, useEffect} from "react";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 import {Button} from "../ui/button";
+import WishlistButton from "../wishlist/WishlistButton";
 // inject small CSS to hide webkit scrollbar for pill containers
 
 type SelectedVariant = {
@@ -186,7 +187,15 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
 
   return (
     <Card className="flex flex-col items-center justify-center rounded-md hover:scale-101 hide-scrollbar transition-transform duration-300">
-      <CardContent className="w-full flex-1">
+      <CardContent className="relative flex-1 border-[0.3px] border-border rounded-md">
+        <div className="absolute -top-3 -right-3 overflow-none z-30">
+          <WishlistButton
+            productId={product.id}
+            initialInWishlist={false}
+            size={20}
+          />
+        </div>
+
         {/*Image & Preis*/}
         <Link href={href}>
           <div className="relative aspect-5/6 rounded-t-2xl overflow-hidden my-2">
@@ -195,7 +204,7 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
               alt={altText}
               fill
               sizes="(min-width: 768px) 70vw, 50vw"
-              className={`object-contain w-full h-full hover:scale-105 transition-transform duration-300 ${
+              className={`object-contain hover:scale-105 transition-transform duration-300 ${
                 isFading ? "opacity-0" : "opacity-100"
               }`}
             />

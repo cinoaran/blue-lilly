@@ -1,5 +1,5 @@
 import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
-import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
+import {getAllMerchants} from "../../merchant/actions/getAllMerchants";
 import {headers} from "next/headers";
 import {ensureAndRequire} from "@/acl/acl";
 import {notFound} from "next/navigation";

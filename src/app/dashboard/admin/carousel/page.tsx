@@ -1,4 +1,4 @@
-import {getAllCarousel} from "@/actions/admin/carousel/getAllCarousel";
+import {getAllCarousel} from "./actions/getAllCarousel";
 import Link from "next/link";
 import Image from "next/image";
 

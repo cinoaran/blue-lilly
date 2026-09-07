@@ -1,4 +1,4 @@
-import {Prisma, Product} from "@/generated/prisma";
+import {Prisma} from "@/generated/prisma";
 import {getCategoryDescendantIds} from "@/lib/category/categoryTree";
 import {prisma} from "@/lib/prisma";
 

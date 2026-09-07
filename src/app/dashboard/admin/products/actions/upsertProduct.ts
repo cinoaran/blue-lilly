@@ -1,15 +1,15 @@
 "use server";
+
 import prisma from "@/lib/prisma";
 import {requireServerPermission} from "@/acl/server";
 import {ProductSchema} from "@/zod-schemas/products/ProductShema";
 import {ProductFormData} from "@/types/product/productFormData";
 import {generateSku, convertDecimalToNumber, normalizeSku} from "@/helpers";
-import {utapi} from "@/uploadthing/server";
+import {UTApi} from "uploadthing/server";
 import {Variant} from "@/types/product/variants";
 import {Option} from "@/types/product/options";
 import {BaseColor} from "@/generated/prisma/enums";
 import {revalidatePath} from "next/cache";
-import {UTApi} from "uploadthing/server";
 import {Prisma} from "@/generated/prisma";
 
 // Helper: random suffix and ensure unique SKU
@@ -29,7 +29,6 @@ async function ensureUniqueSku(baseSku: string) {
     const found = await prisma.option.findUnique({where: {sku: candidate}});
     if (!found) return candidate;
   }
-  // fallback: append random suffix at end
   const fallback = `${randomSuffix(6)}//${normalized}`;
   const existsFallback = await prisma.option.findUnique({
     where: {sku: fallback},
@@ -38,112 +37,28 @@ async function ensureUniqueSku(baseSku: string) {
   throw new Error("Unable to generate unique SKU after several attempts.");
 }
 
-export async function getProductById(productId: string) {
-  await requireServerPermission("product:update");
-  try {
-    const product = await prisma.product.findUnique({
-      where: {id: productId},
-      include: {
-        variants: {
-          include: {options: true},
-        },
-      },
-    });
-    return product;
-  } catch (error) {
-    console.error("Error fetching product by ID:", error);
-    return null;
-  }
-}
-
-// Produkt löschen inkl. Medien bei UploadThing
-export async function deleteProduct(productId: string) {
-  await requireServerPermission("product:delete");
-  try {
-    // Hole Produkt mit Varianten und Optionen
-    const product = await prisma.product.findUnique({
-      where: {id: productId},
-      include: {
-        variants: {
-          include: {options: true},
-        },
-      },
-    });
-    if (!product) return {success: false, error: "Produkt nicht gefunden."};
-
-    // Sammle alle zu löschenden UploadThing-URLs
-    const fileKeys: string[] = [];
-    for (const variant of product.variants) {
-      for (const option of variant.options) {
-        // Prüfe, ob gesetzt ist (dann nicht löschen)
-        if (option.image && Array.isArray(option.image)) {
-          for (const img of option.image) {
-            if (img && typeof img === "string") {
-              // Extrahiere fileKey aus URL
-              const key = img.substring(img.lastIndexOf("/") + 1);
-              fileKeys.push(key);
-            }
-          }
-        }
-        /* Analog für Videos:
-          if (option.video && Array.isArray(option.video)) {
-            for (const vid of option.video) {
-              if (vid && typeof vid === "string") {
-                const key = vid.substring(vid.lastIndexOf("/") + 1);
-                fileKeys.push(key);
-              }
-            }
-          }
-        */
-      }
-    }
-
-    // Lösche alle Files bei UploadThing (nur wenn fileKeys vorhanden)
-    if (fileKeys.length > 0) {
-      try {
-        await utapi.deleteFiles(fileKeys);
-      } catch (err) {
-        console.error("Fehler beim Löschen der Medien bei UploadThing:", err);
-        // Nicht blockierend, fahre fort
-      }
-    }
-
-    // Lösche Produkt (inkl. Cascade für Varianten/Optionen)
-    await prisma.product.delete({where: {id: productId}});
-    return {success: true};
-  } catch (error) {
-    console.error("Fehler beim Löschen des Produkts:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unbekannter Fehler",
-    };
-  }
-}
-
-type ProductInputWithSku = Partial<ProductFormData> & {
-  sku?: string;
-  variants?: Array<
-    Partial<Variant> & {
-      // ← Jetzt passt es!
-      options?: Array<Partial<Option>>;
-    }
-  >;
-};
-
 // Helper: FileKey aus UploadThing URL extrahieren
 const extractFileKey = (url: string): string => {
   try {
     const parts = url.split("/");
     const filename = parts[parts.length - 1];
-    return filename.split("?")[0]; // z.B. "abc123.webp"
+    return filename.split("?")[0];
   } catch {
     return "";
   }
 };
 
+type ProductInputWithSku = Partial<ProductFormData> & {
+  sku?: string;
+  variants?: Array<
+    Partial<Variant> & {
+      options?: Array<Partial<Option>>;
+    }
+  >;
+};
+
 const updateProduct = async (data: ProductFormData) => {
   try {
-    // Validate payload with the same Zod schema as addProduct
     const result = ProductSchema.safeParse(data);
     if (!result.success) {
       return {
@@ -153,7 +68,6 @@ const updateProduct = async (data: ProductFormData) => {
     }
     const validData = result.data;
 
-    // 1. Aktuelles Product laden (für alteImages)
     const currentProduct = (await prisma.product.findUnique({
       where: {id: validData.id},
       include: {
@@ -167,17 +81,12 @@ const updateProduct = async (data: ProductFormData) => {
 
     const oldImageKeys: string[] = [];
 
-    // 2. Alte Images finden, die nicht mehr in neuen data.image sind
     if (currentProduct?.variants) {
       currentProduct.variants.forEach((variant) => {
         variant.options.forEach((option) => {
           option.image.forEach((oldImgUrl) => {
-            // Wenn alte URL nicht mehr in neuen Daten → löschen
-            // In updateProduct: Vergleiche per URL-Hash, nicht ID
             const stillExists = validData.variants?.some((newV) =>
-              newV.options?.some(
-                (newO) => newO.image?.includes(oldImgUrl), // ← URL-basiert!
-              ),
+              newV.options?.some((newO) => newO.image?.includes(oldImgUrl)),
             );
 
             if (!stillExists && oldImgUrl) {
@@ -189,14 +98,12 @@ const updateProduct = async (data: ProductFormData) => {
       });
     }
 
-    // 3. UploadThing: Alte Images löschen
     if (oldImageKeys.length > 0) {
       const utapi = new UTApi();
       await utapi.deleteFiles(oldImageKeys);
       console.log(`✅ Gelöscht: ${oldImageKeys.length} alte Images`);
     }
 
-    // 4. Trimmed Product-Daten (wie vorher)
     const trimmedDataUnchecked: Prisma.ProductUncheckedUpdateInput = {
       name: validData.name?.trim() || undefined,
       smallDesc: validData.smallDesc?.trim() || undefined,
@@ -210,10 +117,8 @@ const updateProduct = async (data: ProductFormData) => {
       merchantId: validData.merchantId || undefined,
       isActive: validData.isActive ?? undefined,
       isFeatured: validData.isFeatured ?? undefined,
-      // KEINE variants hier!
     };
 
-    // Build a typed ProductUpdateInput for nested updates (uses `set` wrappers)
     const trimmedDataUpdate: Prisma.ProductUpdateInput = {
       name:
         trimmedDataUnchecked.name === undefined
@@ -257,7 +162,6 @@ const updateProduct = async (data: ProductFormData) => {
           : {set: trimmedDataUnchecked.isFeatured as boolean},
     };
 
-    // Preflight: collect SKUs from incoming data (generate where missing) and check duplicates
     const incomingSkus: string[] = [];
     if (validData.variants && validData.variants.length > 0) {
       for (const variant of validData.variants) {
@@ -265,7 +169,6 @@ const updateProduct = async (data: ProductFormData) => {
           const optSku =
             (option as Partial<Option>).sku &&
             String((option as Partial<Option>).sku).trim();
-          // generate a base SKU or use provided, then ensure uniqueness by appending random suffix if needed
           const baseSku =
             optSku && optSku.length > 0
               ? normalizeSku(optSku)
@@ -281,7 +184,6 @@ const updateProduct = async (data: ProductFormData) => {
           const finalSku = await ensureUniqueSku(baseSku);
           if (finalSku) {
             incomingSkus.push(finalSku);
-            // persist normalized/generated sku back to the payload so transaction uses it
             if (
               !(option as Partial<Option>).sku ||
               (option as Partial<Option>).sku !== finalSku
@@ -291,16 +193,12 @@ const updateProduct = async (data: ProductFormData) => {
         }
       }
     }
-    // incomingSkus are now unique (ensureUniqueSku), no preflight duplicate error required
 
-    // 5. Nested Update: ALLE alten Variants/Options löschen + neu erstellen
     await prisma.$transaction(async (tx) => {
-      // Alte Variants komplett löschen
       await tx.variant.deleteMany({
         where: {productId: validData.id},
       });
 
-      // Neue Variants + Options erstellen (wie bei addProduct)
       if (validData.variants && validData.variants.length > 0) {
         await tx.product.update({
           where: {id: validData.id},
@@ -343,7 +241,6 @@ const updateProduct = async (data: ProductFormData) => {
           },
         });
       } else {
-        // Ohne Variants nur Product updaten
         await tx.product.update({
           where: {id: validData.id},
           data: trimmedDataUnchecked,
@@ -353,7 +250,6 @@ const updateProduct = async (data: ProductFormData) => {
 
     revalidatePath("/admin/products");
 
-    // fetch updated product to return to client (so UI can display generated SKUs)
     const updated = await prisma.product.findUnique({
       where: {id: validData.id},
       include: {variants: {include: {options: true}}},
@@ -366,10 +262,8 @@ const updateProduct = async (data: ProductFormData) => {
     };
   } catch (error: unknown) {
     console.error("Update Error:", error);
-    // Prisma unique constraint
     const e = error as {code?: string; meta?: {target?: string[] | string}};
     if (e && e.code === "P2002") {
-      // try to extract target field
       const metaTarget = e.meta?.target;
       const target = Array.isArray(metaTarget)
         ? metaTarget.join(", ")
@@ -398,7 +292,6 @@ const addProduct = async (data: ProductInputWithSku) => {
       };
     }
     const validData = result.data;
-    // Prüfe, ob der Slug bereits existiert
     const existing = await prisma.product.findUnique({
       where: {slug: validData.slug.trim()},
     });
@@ -460,9 +353,6 @@ const addProduct = async (data: ProductInputWithSku) => {
       }),
     );
 
-    // SKUs have been ensured unique by ensureUniqueSku
-
-    // Produkt samt Varianten und Optionen anlegen
     const createdProduct = await prisma.product.create({
       data: {
         name: validData.name!.trim(),
@@ -472,19 +362,18 @@ const addProduct = async (data: ProductInputWithSku) => {
         slug: validData.slug!.trim(),
         isActive: validData.isActive ?? false,
         isFeatured: validData.isFeatured ?? false,
-        merchant: {connect: {id: validData.merchantId!.trim()}}, // ensure present via validation
-        category: {connect: {id: validData.categoryId!.trim()}}, // ensure present via validation
+        merchant: {connect: {id: validData.merchantId!.trim()}},
+        category: {connect: {id: validData.categoryId!.trim()}},
         subcategory: validData.subcategory
           ? validData.subcategory.trim()
           : undefined,
         variants: {
           create: (enrichedVariants ?? []).map(({size, units, options}) => ({
             size: size ?? "",
-            units: units ?? undefined, // use FK field instead of relation connect
+            units: units ?? undefined,
             options: {
               create: (options ?? []).map(({id, ...optData}) => ({
-                ...(id ? {id} : {}), // include id only when provided
-                // id we skip/pass conditionally to let DB generate
+                ...(id ? {id} : {}),
                 entryPrice: optData.entryPrice ?? 0,
                 sellPrice: optData.sellPrice ?? 0,
                 taxPercentage: optData.taxPercentage ?? 0,
@@ -566,19 +455,4 @@ export async function upsertProduct(
   }
 }
 
-export async function getAllProducts() {
-  await requireServerPermission("product:update");
-  try {
-    const products = await prisma.product.findMany({
-      include: {
-        variants: {
-          include: {options: true},
-        },
-      },
-    });
-    return products;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
-  }
-}
+export default upsertProduct;

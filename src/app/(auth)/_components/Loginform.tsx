@@ -20,6 +20,8 @@ import {useState} from "react";
 import {useSearchParams} from "next/navigation";
 import Spinner from "@/components/Loader/Spinner";
 import {authClient} from "@/lib/auth/auth-client";
+import {mergeGuestWishlist} from "@/lib/wishlist/mergeGuestWishlist";
+import {toast} from "sonner";
 import {ErrorContext} from "@better-fetch/fetch";
 
 const Loginform = () => {
@@ -59,8 +61,28 @@ const Loginform = () => {
           // keep as a safeguard if authClient calls this
           setIsPending(true);
         },
-        onSuccess: () => {
+        onSuccess: async () => {
           setIsPending(true);
+          try {
+            // Merge any guest wishlist before finalizing login redirect
+            const result = await mergeGuestWishlist();
+            if (result.ok && result.merged) {
+              // show a short success toast then continue
+              toast.success("Wunschliste übernommen", {duration: 2000});
+              // wait briefly so the user sees the toast
+              await new Promise((r) => setTimeout(r, 900));
+            } else if (!result.ok) {
+              // show an error toast but continue with login flow
+              toast.error("Wunschliste konnte nicht übernommen werden", {
+                duration: 3000,
+              });
+              await new Promise((r) => setTimeout(r, 900));
+            }
+          } catch (e) {
+            // ignore merge errors and continue with login flow
+            console.warn("mergeGuestWishlist failed", e);
+          }
+          // Finally redirect to server-side post-login to merge carts and finalize session redirects
           window.location.href = "/api/auth/post-login";
         },
         onError: (ctx: ErrorContext) => {

@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import {CreateMerchantInput} from "@/actions/admin/merchant/create";
+import type {CreateMerchantInput} from "./create";
 import {requireServerPermission} from "@/acl/server";
 
 export async function updateMerchant(id: string, data: CreateMerchantInput) {
@@ -34,3 +34,5 @@ export async function updateMerchant(id: string, data: CreateMerchantInput) {
 
   return updated;
 }
+
+export default updateMerchant;

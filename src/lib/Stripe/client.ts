@@ -22,13 +22,16 @@ function initStripe(): Stripe {
 export const stripe: Stripe = new Proxy({} as Stripe, {
   get(_, prop: string | symbol) {
     const s = initStripe();
-    // @ts-expect-error dynamic property access
     return s[prop as keyof Stripe];
   },
-  apply(_, __, args) {
+  apply(_, __, args: unknown[]) {
     const s = initStripe();
-    // @ts-expect-error
-    return (s as any).apply(undefined, args);
+    // The Stripe instance isn't normally callable; if a call is attempted
+    // forward it to the instance as a function using spread to avoid .apply.
+    // Use a precisely typed callable instead of the broad `Function` type.
+    type Callable = (...fnArgs: unknown[]) => unknown;
+    const fn = s as unknown as Callable;
+    return fn(...args);
   },
 });
 

@@ -4,22 +4,22 @@ import {useUploadThing} from "@/uploadthing/uploadthing";
 import type {Session} from "@/lib/auth";
 import {useRouter} from "next/navigation";
 import {ChangeEvent, useRef, useState} from "react";
-import {avatar} from "../../actions/admin/profile/avatar";
 import Image from "next/image";
-import {Button} from "../ui/button";
+import {Button} from "@/components/ui/button";
 import {CloudUpload, RefreshCcw, X} from "lucide-react";
 
-interface AvatarImageProps {
+import adminUpdate from "@/app/dashboard/admin/actions/updateAvatar";
+import userUpdate from "@/app/dashboard/user/actions/updateAvatar";
+import merchantUpdate from "@/app/dashboard/merchant/actions/updateAvatar";
+
+interface Props {
   session: Session;
 }
 
-const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
+export default function ProfileAvatar({session: initialSession}: Props) {
   const router = useRouter();
-  // The user object is still useful for initial state
   const user = initialSession?.user;
-  // Use a dedicated state for the image URL, initialized from the prop.
   const [imageUrl, setImageUrl] = useState<string | null>(user?.image ?? null);
-
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -30,18 +30,29 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
       setIsUploading(true);
       setIsPending(true);
       if (res && res.length > 0) {
-        // The `ufsUrl` is the new, preferred URL format from UploadThing.
         const newUrl = res[0].ufsUrl;
         try {
-          // Call the server action to update the user's profile in the DB
-          const result = await avatar({url: newUrl});
-          if (result?.error) throw new Error(result.error);
+          const role = user?.role ?? "user";
+          type AvatarUpdateResult = {success?: true} | {error: string};
+          type Updater = (data: {
+            url: string | null;
+          }) => Promise<AvatarUpdateResult>;
 
-          setImageUrl(newUrl); // Update the image URL state on success
-          alert("Upload Completed and profile updated!");
+          const updater = (
+            role === "admin"
+              ? adminUpdate
+              : role === "merchant"
+                ? merchantUpdate
+                : userUpdate
+          ) as Updater;
+
+          const result = await updater({url: newUrl});
+          if (result && "error" in result) throw new Error(result.error);
+
+          setImageUrl(newUrl);
           setIsPending(false);
           setIsUploading(false);
-          router.refresh(); // Refresh server components to sync state
+          router.refresh();
         } catch (error) {
           console.error("Failed to update profile:", error);
           alert(`ERROR! Failed to update profile.`);
@@ -67,23 +78,30 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
   };
 
   const onDeleteImage = async () => {
-    // Guard clause: do nothing if already deleting or if there's no image.
     if (isDeleting || !imageUrl) return;
-
     setIsDeleting(true);
     try {
-      // To delete the image, we call the server action with `null`.
-      // The server action handles deleting from storage and the database.
-      const result = await avatar({url: null});
-      if (result?.error) throw new Error(result.error);
+      const role = user?.role ?? "user";
+      type AvatarUpdateResult = {success?: true} | {error: string};
+      type Updater = (data: {
+        url: string | null;
+      }) => Promise<AvatarUpdateResult>;
 
-      // On success, update the client-side state immediately for a better UX.
+      const updater = (
+        role === "admin"
+          ? adminUpdate
+          : role === "merchant"
+            ? merchantUpdate
+            : userUpdate
+      ) as Updater;
+      const result = await updater({url: null});
+      if (result && "error" in result) throw new Error(result.error);
+
       setImageUrl(null);
       alert("Image deleted successfully");
-      router.refresh(); // Refresh server components to ensure consistency.
+      router.refresh();
     } catch (error) {
       console.error("Error deleting image:", error);
-      // Let the user know something went wrong.
       alert(
         `Failed to delete image: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -99,7 +117,7 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
       </h6>
       <div className={`relative max-w-24 max-h-24`}>
         <Image
-          src={imageUrl ?? "/avatar/placeholder-avatar.svg"} // Fallback to a placeholder
+          src={imageUrl ?? "/avatar/placeholder-avatar.svg"}
           alt="User Avatar"
           width={0}
           height={0}
@@ -109,7 +127,6 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
         />
       </div>
 
-      {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -164,6 +181,4 @@ const AvatarImage = ({session: initialSession}: AvatarImageProps) => {
       </div>
     </div>
   );
-};
-
-export default AvatarImage;
+}
