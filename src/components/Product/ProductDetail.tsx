@@ -3,7 +3,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {AddToCartForm} from "./_components/AddToCartForm";
+import {AddToCartForm} from "./AddToCartForm";
 import {useSearchParams} from "next/navigation";
 
 import {ProductWithCategoryAndVariants} from "@/types/product/product";
@@ -150,6 +150,8 @@ const ProductDetail = ({
     () => displayVariant?.options ?? [],
   );
   const [isThumbsFading, setIsThumbsFading] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [addedToWishlist, setAddedToWishlist] = useState(false);
 
   useEffect(() => {
     setActiveImages(
@@ -159,6 +161,41 @@ const ProductDetail = ({
     );
     setActiveImageIndex(0);
   }, [displayOption, paramsSize, paramsOptionId]);
+
+  // Auto-add to wishlist when the currently displayed option is out of stock.
+  const doAddToWishlist = async () => {
+    if (!displayOption?.id || isAddingToWishlist || addedToWishlist) return;
+    setIsAddingToWishlist(true);
+    try {
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({productId: product.id}),
+      });
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      if (res.ok) {
+        setAddedToWishlist(true);
+        window.location.href = "/wishlist";
+        return;
+      }
+    } catch (e) {
+      console.error("add to wishlist failed", e);
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
+
+  useEffect(() => {
+    const qtyNow = Number(displayOption?.quantity ?? 0);
+    if (qtyNow === 0) {
+      void doAddToWishlist();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayOption?.id, displayOption?.quantity]);
 
   // Thumbnail updates are driven directly from the size button onClick handlers
   // to keep the interaction simple and deterministic.
@@ -413,16 +450,19 @@ const ProductDetail = ({
                   );
                 }
 
-                const href = `/wishlist?productId=${product.id}&variantId=${displayVariant?.id}&optionId=${displayOption?.id}`;
+                // Fallback: show link to wishlist for manual add or if automatic add not possible.
                 return (
                   <Link
                     className={`w-full md:w-3/4 text-center bg-red-400 px-3 py-0 rounded-md text-lg font-semibold uppercase hover:bg-primary/90 transition`}
-                    href={href}
+                    href={`/wishlist?productId=${product.id}&variantId=${displayVariant?.id}&optionId=${displayOption?.id}`}
                   >
                     <div className="flex items-center justify-center gap-5 text-white">
-                      <h4>ADD TO WISHLIST</h4>
+                      <h4>
+                        {isAddingToWishlist
+                          ? "Wird hinzugefügt..."
+                          : "Zur Wunschliste"}
+                      </h4>
                       <span className="flex items-center justify-center pl-7 py-2 border-l border-border ">
-                        FOR{" "}
                         {displayOption?.sellPrice &&
                           `${formatPrice(displayOption.sellPrice)}`}
                       </span>

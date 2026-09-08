@@ -3,6 +3,8 @@
 import {revalidatePath} from "next/cache";
 import prisma from "@/lib/prisma";
 import {getOrCreateCart} from "@/lib/cart/getOrCreateCart";
+import {headers} from "next/headers";
+import {getSessionOnce} from "@/lib/session/sessionCache";
 
 export async function addToCart(
   optionId: string,
@@ -14,10 +16,14 @@ export async function addToCart(
   console.info("addToCart: using cart id=", cart?.id ?? null);
   if (!cart) throw new Error("Failed to create or obtain cart");
 
-  // Fetch option including available stock
+  // Fetch option including available stock and product id
   const option = await prisma.option.findUnique({
     where: {id: optionId},
-    select: {sellPrice: true, quantity: true},
+    select: {
+      sellPrice: true,
+      quantity: true,
+      variant: {select: {product: {select: {id: true}}}},
+    },
   });
 
   if (!option) return;
@@ -60,6 +66,23 @@ export async function addToCart(
         unitPrice: option.sellPrice,
       },
     });
+  }
+
+  // If the user has a wishlist, remove the product from it after adding to cart
+  try {
+    const hdrs = await headers();
+    const headerObj = Object.fromEntries(hdrs.entries()) as Record<string, string>;
+    const session = await getSessionOnce({headers: headerObj});
+    const productId = option?.variant?.product?.id ?? null;
+    if (session?.user?.id && productId) {
+      const wishlist = await prisma.wishlist.findUnique({where: {userId: session.user.id}});
+      if (wishlist) {
+        await prisma.wishlistItem.deleteMany({where: {wishlistId: wishlist.id, productId}});
+        revalidatePath("/wishlist");
+      }
+    }
+  } catch (e) {
+    console.error("addToCart: cleanup wishlist error", e);
   }
 
   revalidatePath("/cart");

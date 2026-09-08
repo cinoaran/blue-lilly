@@ -88,14 +88,16 @@ export default function NewsletterForm({onSuccess, title}: Props) {
   }, [email]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 md:h-72 w-full overflow-hidden p-4">
-      <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
+    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-128 w-full overflow-hidden p-4">
+      <h1 className="absolute -top-3 -left-2 md:-top-6 md:-left-8 font-bold text-xl lg:text-4xl mb-4 bg-brand-sage rounded-full p-6 md:p-10 ">
+        5,0 %
+      </h1>
 
       {title === null ? null : (
-        <span className="font-normal text-left text-md md:text-lg">
+        <span className="font-normal text-left text-md md:text-xl">
           {typeof title === "string"
             ? title
-            : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang."}
+            : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang. Jetzt 5,0 % sichern!"}
         </span>
       )}
 
@@ -116,7 +118,7 @@ export default function NewsletterForm({onSuccess, title}: Props) {
           <Button
             type="submit"
             disabled={loading || !!emailError || !consent}
-            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+            className="px-4 py-2 bg-primary text-foreground rounded disabled:opacity-50"
           >
             {loading ? "..." : "Anmelden"}
           </Button>
@@ -132,8 +134,8 @@ export default function NewsletterForm({onSuccess, title}: Props) {
           <span className="text-foreground">
             Ich möchte den Newsletter erhalten und stimme der
             <Link
-              href="/datenschutzerklarung"
-              className="text-primary underlined px-1"
+              href="/datenschutz"
+              className="text-destructive underlined px-1"
             >
               Datenschutzerklärung
             </Link>
@@ -157,6 +159,7 @@ export default function NewsletterForm({onSuccess, title}: Props) {
           />
         )}
       </form>
+      <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
     </div>
   );
 }

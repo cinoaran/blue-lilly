@@ -12,6 +12,7 @@ import ProductsSkeleton from "./(root)/skeletons/ProductsSkeleton";
 // import {sleep} from "@/lib/utils";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import SearchInput from "@/components/shared/searchBar";
+import Image from "next/image";
 
 type SearchParams = Promise<{
   [key: string]: string | string[] | undefined;
@@ -54,7 +55,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
         </div>
       </div>
     ) : (
-      <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-9 mx-auto max-w-[85vw]">
+      <div className="container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-12 mx-auto max-w-[85vw]">
         {(safeProducts as ProductWithVariants[]).map((product, idx) => (
           <ProductCard
             key={`prod-${(product as ProductWithVariants).id ?? (product as ProductWithVariants).slug ?? idx}`}
@@ -81,8 +82,43 @@ export default async function Home(props: {searchParams: SearchParams}) {
           <HeaderCarousel />
         </Suspense>
       </div>
-      <hr className="border-foreground/10 my-12" />
-      <div className="flex flex-col items-center justify-center gap-4 mb-4 bg-background/10 p-4 rounded-md">
+      <hr className="border-foreground/10 mt-12 mb-2" />
+      <div className="flex flex-col items-center justify-center gap-12 py-8">
+        <h2 className="text-4xl font-semibold text-left w-full px-12">
+          Philosopie & Partnerschaften
+        </h2>
+        <div className="flex items-center justify-center gap-12">
+          <div>
+            <Image
+              src="/shop/Medaillen/metzgerei.png"
+              alt="Description"
+              width={140}
+              height={140}
+              className="rounded-md"
+            />
+          </div>
+          <div>
+            <Image
+              src="/shop/Medaillen/umweltkon.png"
+              alt="Description"
+              width={140}
+              height={140}
+              className="rounded-md"
+            />
+          </div>
+          <div>
+            <Image
+              src="/shop/Medaillen/tierwohl.png"
+              alt="Description"
+              width={140}
+              height={140}
+              className="rounded-md"
+            />
+          </div>
+        </div>
+      </div>
+      <hr className="border-foreground/10 mt-12 mb-2" />
+      <div className="flex flex-col items-center justify-center gap-4 mb-4 p-4 rounded-md">
         <Suspense
           fallback={
             <div className="flex items-start justify-start gap-4 mb-4">
@@ -91,10 +127,10 @@ export default async function Home(props: {searchParams: SearchParams}) {
             </div>
           }
         >
-          <h3 className="w-full text-left font-thin text-4xl  md:text-5xl text-foreground">
-            Search Products
-          </h3>
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-10 z-10">
+          <h2 className="text-4xl font-semibold text-left w-full px-12">
+            Das passende Produkt finden
+          </h2>
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-5 my-10 z-10">
             <div className="flex items-center justify-center gap-4 flex-1">
               <SearchInput
                 defaultQuery={defaultQuery}
@@ -116,7 +152,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
             query={searchParams.query as string}
           />
         )}
-
+        <hr className="border-foreground/10 mt-12 mb-2" />
         <div className="w-full flex items-center justify-center py-6">
           <NewsletterForm />
         </div>

@@ -49,7 +49,7 @@ export default function SortSelect({defaultValue}: {defaultValue?: string}) {
       >
         <SelectTrigger
           size="default"
-          className="mt-0 md:mt-9 w-46 font-normal text-sm"
+          className="mt-0 md:mt-12 w-46 font-normal text-sm"
         >
           <SelectValue placeholder="Filtern (nach)" />
         </SelectTrigger>

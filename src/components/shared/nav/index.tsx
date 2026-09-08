@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import {Camera, FileQuestion, HomeIcon, LucideMailbox} from "lucide-react";
+import {Camera, FileQuestion, HomeIcon} from "lucide-react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 
@@ -61,24 +61,6 @@ const Main = () => {
               strokeWidth={pathname === "/faq" ? 3 : 2}
             />
             <span className="text-md font-normal">FAQ</span>
-          </Link>
-        </li>
-        <li
-          className={`flex items-start justify-center ${
-            pathname === "/newsletter"
-              ? "text-primary font-semibold"
-              : "text-sheet-foreground"
-          }`}
-        >
-          <Link
-            href={`/newsletter`}
-            className="flex items-center justify-start gap-2 w-fit h-9 underlined uppercase"
-          >
-            <LucideMailbox
-              className="size-[1.2rem]"
-              strokeWidth={pathname === "/newsletter" ? 3 : 2}
-            />
-            <span className="text-md font-normal">Newsletter</span>
           </Link>
         </li>
       </ul>
