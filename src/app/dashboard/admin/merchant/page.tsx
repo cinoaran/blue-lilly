@@ -1,7 +1,7 @@
 import React from "react";
 import {DataTable} from "@/app/dashboard/_components/DataTable";
 import {columns} from "./_components/Columns";
-import {getAllMerchants} from "@/actions/admin/merchant/getAllMerchants";
+import {getAllMerchants} from "./actions/getAllMerchants";
 import {headers} from "next/headers";
 
 const MerchantPage = async () => {

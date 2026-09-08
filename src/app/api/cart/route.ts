@@ -1,69 +1,78 @@
 import {NextResponse} from "next/server";
 import prisma from "@/lib/prisma";
-import {auth} from "@/lib/auth";
-import {getSessionOnce} from "@/lib/session/sessionCache";
-import {convertDecimalToNumber} from "@/helpers";
+import {getOrCreateCart} from "@/lib/cart/getOrCreateCart";
+import {revalidatePath} from "next/cache";
 
-function parseCookies(cookieHeader: string | null) {
-  const map: Record<string, string> = {};
-  if (!cookieHeader) return map;
-  const parts = cookieHeader.split(";");
-  for (const part of parts) {
-    const [k, ...v] = part.split("=");
-    if (!k) continue;
-    map[k.trim()] = decodeURIComponent((v || []).join("=").trim());
-  }
-  return map;
-}
-
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const headers = req.headers;
-    const headerObj = Object.fromEntries(headers.entries()) as Record<
-      string,
-      string
-    >;
+    const body = await req.json();
+    const productId = body?.productId as string | undefined;
+    const quantity = typeof body?.quantity === "number" ? body.quantity : 1;
 
-    const session = await getSessionOnce({headers: headerObj});
-    const userId = session?.user?.id ?? null;
+    if (!productId)
+      return NextResponse.json({error: "productId required"}, {status: 400});
 
-    const cookieHeader = req.headers.get("cookie") ?? null;
-    const cookies = parseCookies(cookieHeader);
-    const cartId = cookies["cartId"] ?? null;
-
-    const include = {
-      items: {
-        include: {
-          option: {
-            include: {
-              variant: {include: {product: true}},
-            },
-          },
-        },
+    // Find a default option for the product (prefer available stock)
+    const option = await prisma.option.findFirst({
+      where: {
+        variant: {productId},
+        // you can prefer options with stock > 0
       },
-    } as const;
+      orderBy: [{quantity: "desc"}],
+      select: {id: true, sellPrice: true, quantity: true},
+    });
 
-    let cart = null;
+    if (!option)
+      return NextResponse.json(
+        {error: "No purchasable option found"},
+        {status: 400},
+      );
 
-    if (userId) {
-      cart = await prisma.cart.findFirst({
-        where: {userId, status: "ACTIVE"},
-        include,
+    const cart = await getOrCreateCart(undefined, true);
+    if (!cart)
+      return NextResponse.json({error: "Failed to obtain cart"}, {status: 500});
+
+    const existing = await prisma.cartItem.findUnique({
+      where: {cartId_optionId: {cartId: cart.id, optionId: option.id}},
+    });
+
+    const existingQty = existing?.quantity ?? 0;
+    const available =
+      typeof option.quantity === "number" ? option.quantity : Infinity;
+    const canAdd = Math.max(0, available - existingQty);
+    if (canAdd <= 0) {
+      return NextResponse.json({error: "No availability"}, {status: 400});
+    }
+
+    const qtyToAdd = Math.min(quantity, canAdd);
+
+    if (existing) {
+      await prisma.cartItem.update({
+        where: {id: existing.id},
+        data: {quantity: {increment: qtyToAdd}},
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          optionId: option.id,
+          quantity: qtyToAdd,
+          unitPrice: option.sellPrice,
+        },
       });
     }
 
-    if (!cart && cartId) {
-      const guest = await prisma.cart.findUnique({
-        where: {id: cartId},
-        include,
-      });
-      if (guest?.status === "ACTIVE") cart = guest;
+    try {
+      revalidatePath("/cart");
+      revalidatePath("/");
+    } catch (e) {
+      console.error("Failed to revalidate paths", e);
+      // ignore
     }
 
-    const serializable = cart ? convertDecimalToNumber(cart) : null;
-    return NextResponse.json({cart: serializable});
-  } catch (err) {
-    console.error("/api/cart error:", err);
-    return NextResponse.json({cart: null}, {status: 500});
+    return NextResponse.json({ok: true}, {status: 201});
+  } catch (e) {
+    console.error("/api/cart POST error", e);
+    return NextResponse.json({error: "Server error"}, {status: 500});
   }
 }

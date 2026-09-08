@@ -6,10 +6,14 @@ import {getAllCategoryTree} from "@/actions/categories";
 import {getSearchProducts} from "@/actions/products";
 import {ProductWithVariants} from "@/types/product/product";
 import {Suspense} from "react";
+// redirect not used for wishlist when unauthenticated; keep import removed
+import {ensureSession} from "@/acl/acl";
+import prisma from "@/lib/prisma";
 // import {sleep} from "@/lib/utils";
 import SortSelect from "@/components/shared/SortSelect";
 import ProductsSkeleton from "@/app/(root)/skeletons/ProductsSkeleton";
 import SearchInput from "@/components/shared/searchBar";
+import WishlistGridClient from "@/components/wishlist/WishlistGridClient";
 
 const normalizeCategorySlug = (value: string) =>
   decodeURIComponent(value ?? "")
@@ -50,6 +54,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
   const category = categorySegments.length
     ? normalizeCategorySlug(categorySegments[categorySegments.length - 1] ?? "")
     : "";
+
   const categoryPathNormalized = categorySegments.length
     ? categorySegments.map((s) => normalizeCategorySlug(s)).join("/")
     : "";
@@ -87,12 +92,21 @@ const CategoryPage = async ({params, searchParams}: Props) => {
     limit: number;
     rawSort: string;
   }) {
+    // When viewing the wishlist route we must NOT pass the literal
+    // "wishlist" category slug to the search backend — that would
+    // filter for products in a category named "wishlist" and return
+    // no results. Instead, run the search across all products (no
+    // category filter) and then restrict results server-side to the
+    // user's wishlist IDs below.
+    const searchCategory =
+      category === "wishlist" ? undefined : categoryPathNormalized || undefined;
+
     const {products: finalProducts, total: finalTotal} =
       await getSearchProducts({
         query,
         page,
         limit,
-        category: categoryPathNormalized || undefined,
+        category: searchCategory,
         sort: rawSort || undefined,
       });
 
@@ -107,12 +121,45 @@ const CategoryPage = async ({params, searchParams}: Props) => {
         })
       : {products: []};
 
-    const safeProducts = (finalProducts ?? []).map(
+    let safeProducts = (finalProducts ?? []).map(
       (p) => convertDecimalToNumber(p) as unknown,
     ) as ProductWithVariants[];
-    const safeBrowseProducts = (browseProducts ?? []).map(
+    let safeBrowseProducts = (browseProducts ?? []).map(
       (p) => convertDecimalToNumber(p) as unknown,
     ) as ProductWithVariants[];
+
+    // If the user is viewing the wishlist route, filter the server-side search
+    // results to only include products that appear in the user's wishlist. This
+    // allows existing search filters (query, sort) to be applied before
+    // restricting to wishlist items.
+    if (category === "wishlist") {
+      let session = null;
+      try {
+        session = await ensureSession();
+      } catch {
+        session = null;
+      }
+
+      if (session && session.user && session.user.id) {
+        const wishlist = await prisma.wishlist.findUnique({
+          where: {userId: session.user.id},
+          include: {items: {select: {productId: true}}},
+        });
+
+        const wishSet = new Set(
+          (wishlist?.items ?? []).map((i) => i.productId),
+        );
+        safeProducts = safeProducts.filter((p) => p && wishSet.has(p.id));
+        safeBrowseProducts = safeBrowseProducts.filter(
+          (p) => p && wishSet.has(p.id),
+        );
+      } else {
+        // No session: leave safeProducts untouched. Client-side `WishlistGridClient`
+        // will render guest wishlist items from localStorage when available.
+      }
+    }
+
+    // No client-side wishlist handling here — server handles /search/wishlist
 
     // Simulate server delay so route-level Skeleton is visible on navigation
     // await sleep(4000);
@@ -150,6 +197,15 @@ const CategoryPage = async ({params, searchParams}: Props) => {
               </section>
             )}
           </div>
+        ) : // For the wishlist route always render the client-managed grid so
+        // client-side events can update the visible list immediately. For
+        // guests `initialProducts` will be empty and `allowedIds` will be
+        // used to intersect with `localStorage.guest_wishlist`.
+        category === "wishlist" ? (
+          <WishlistGridClient
+            initialProducts={safeProducts}
+            allowedIds={safeProducts.map((p) => p.id)}
+          />
         ) : (
           <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] md:w-[95vw]">
             {safeProducts.map((product) => (
@@ -198,7 +254,7 @@ const CategoryPage = async ({params, searchParams}: Props) => {
           <h3 className="w-full text-left font-thin text-4xl p-6 text-foreground">
             Filter Products {categoryLabel && `in ${categoryLabel}`}
           </h3>
-          <div className="flex flex-col sm:flex-row items-center justify-between mx-auto gap-10 mb-10 w-[65vw]">
+          <div className="flex flex-col sm:flex-row items-center md:justify-between mx-auto gap-10 mb-10 w-[65vw]">
             <div className="flex items-center justify-center gap-4 flex-1">
               <SearchInput
                 defaultQuery={query}

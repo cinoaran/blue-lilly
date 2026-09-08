@@ -31,7 +31,7 @@ import {createSlugFromName} from "@/helpers/products/slug-creator";
 import FormError from "@/components/shared/authComponent/FormError";
 import FormSuccess from "@/components/shared/authComponent/FormSuccess";
 import Spinner from "@/components/Loader/Spinner";
-import {upsertProduct} from "@/actions/admin/products"; // Neue Action: add/update
+import {upsertProduct} from "../actions/upsertProduct"; // Neue Action: add/update
 import {PlusCircle} from "lucide-react";
 import ProductDescriptionEditor from "@/components/TipTap/ProductDescriptionEditor";
 
@@ -231,7 +231,7 @@ export default function ProductForm({
         if (result.product) {
           try {
             const mapped = mapPrismaToFormData(
-              result.product as ProductFormData,
+              result.product as unknown as ProductFormData,
             );
             form.reset(mapped);
           } catch (e) {

@@ -1,7 +1,7 @@
 import React from "react";
-import {getCart} from "@/actions/cart/getCarts";
+import {getCart} from "./actions/getCarts";
 import Link from "next/link";
-import CartClient from "@/components/cart/CartClientWrapper";
+import CartClient from "./_components/CartClientWrapper";
 import formatPrice from "@/helpers/products/formatPrice";
 import {ChevronLeft, Euro, Sigma, Truck} from "lucide-react";
 import ShippingAddressClient from "@/components/checkout/ShippingAddressClient";

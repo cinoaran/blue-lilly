@@ -133,19 +133,16 @@ export default function CategoryForm({
 
     const id = setTimeout(async () => {
       try {
-        const res = await fetch("/api/admin/categories/check-slug", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            slug: candidate,
-            parentId:
-              watchedParentId === ROOT_PARENT_VALUE
-                ? null
-                : watchedParentId || null,
-            excludeId: initialValues?.id || undefined,
-          }),
+        const mod =
+          await import("@/app/dashboard/admin/categories/actions/checkSlug");
+        const json = await mod.checkSlug({
+          slug: candidate,
+          parentId:
+            watchedParentId === ROOT_PARENT_VALUE
+              ? null
+              : watchedParentId || null,
+          excludeId: initialValues?.id || undefined,
         });
-        const json = await res.json();
         if (!active) return;
         setSlugAvailable(Boolean(json.available));
       } catch (e) {

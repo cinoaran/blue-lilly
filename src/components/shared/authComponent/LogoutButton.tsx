@@ -23,10 +23,11 @@ export default function SignoutButton() {
       }
 
       try {
-        // server-side clear of httpOnly cart cookie
-        await fetch("/api/cart/clear", {method: "POST"});
+        // server-side clear of httpOnly cart cookie via server action
+        const {clearCart} = await import("@/app/(root)/cart/actions/clearCart");
+        await clearCart();
       } catch (e) {
-        console.warn("Failed to clear cart cookie via API", e);
+        console.warn("Failed to clear cart cookie via server action", e);
       }
 
       try {

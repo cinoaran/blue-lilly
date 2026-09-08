@@ -1,5 +1,5 @@
 import React, {Suspense} from "react";
-import getCarouselById from "@/actions/admin/carousel/getCarouselById";
+import getCarouselById from "../actions/getCarouselById";
 import CarouselFormClient from "../_components/CarouselFormClient";
 import CarouselFormSkeleton from "../_components/CarouselFormSkeleton";
 

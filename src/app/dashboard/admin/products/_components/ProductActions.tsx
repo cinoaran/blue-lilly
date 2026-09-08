@@ -1,6 +1,6 @@
 "use client";
 import {useTransition} from "react";
-import {deleteProduct} from "@/actions/admin/products";
+import {deleteProduct} from "../actions/deleteProduct";
 import {
   DropdownMenuContent,
   DropdownMenuItem,

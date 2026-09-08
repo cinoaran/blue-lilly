@@ -1,7 +1,7 @@
 import React from "react";
 import {DataTable} from "@/app/dashboard/_components/DataTable";
 import {columns} from "./_components/Columns";
-import {getAllUsers} from "@/actions/admin/user/getAllUsers";
+import {getAllUsers} from "./actions/getAllUsers";
 
 const UsersPage = async () => {
   const data = await getAllUsers();

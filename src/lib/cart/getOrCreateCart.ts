@@ -1,6 +1,5 @@
 import {cookies, headers} from "next/headers";
 import prisma from "@/lib/prisma";
-import {auth} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {mergeGuestCartIntoUserCart} from "@/lib/cart/mergeGuestCart";
 import type {

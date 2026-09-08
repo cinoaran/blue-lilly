@@ -1,6 +1,5 @@
 import ShippingAddressClient from "@/components/checkout/ShippingAddressClient";
 import prisma from "@/lib/prisma";
-import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {redirect} from "next/navigation";

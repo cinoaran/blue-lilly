@@ -1,5 +1,5 @@
 import {DataTable} from "../../_components/DataTable";
-import {getAllCategories} from "@/actions/admin/categories/getAllCategories";
+import {getAllCategories} from "@/app/dashboard/admin/categories/actions/getAllCategories";
 import {Category} from "@/types/category/category";
 import Link from "next/link";
 import {Button} from "@/components/ui/button";

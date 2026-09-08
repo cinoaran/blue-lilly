@@ -15,7 +15,7 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {usePathname} from "next/navigation";
 import Link from "next/link";
 import LogoutButton from "@/components/shared/authComponent/LogoutButton";
-import AvatarEdit from "@/components/uploadthing/AvatarEdit";
+import ProfileAvatar from "@/app/dashboard/_components/ProfileAvatar";
 import type {Session} from "@/lib/auth";
 
 export function SheetNavigation({session}: {session: Session | null}) {
@@ -106,7 +106,7 @@ export function SheetNavigation({session}: {session: Session | null}) {
             <>
               <SheetHeader className="flex flex-col items-center justify-center gap-3 border-b border-sheet-foreground/30">
                 <div className="flex flex-col items-center justify-center gap-1">
-                  {session && <AvatarEdit session={session} />}
+                  {session && <ProfileAvatar session={session} />}
                 </div>
 
                 <div className="flex flex-row items-start justify-center gap-5">

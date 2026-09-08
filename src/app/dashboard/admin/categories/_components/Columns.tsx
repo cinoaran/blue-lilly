@@ -1,6 +1,6 @@
 "use client";
 
-import {deleteCategoryAction} from "@/actions/admin/categories/deleteCategoryAction";
+import {deleteCategory} from "@/app/dashboard/admin/categories/actions/deleteCategory";
 import {ColumnDef} from "@tanstack/react-table";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Category} from "@/types/category/category"; // Dein Type
@@ -22,12 +22,9 @@ function CategoryActions({
 
   async function handleDelete() {
     try {
-      const res = await fetch(
-        `/api/admin/categories/check-delete?id=${encodeURIComponent(
-          category.id,
-        )}`,
-      );
-      const json = await res.json();
+      const mod =
+        await import("@/app/dashboard/admin/categories/actions/checkDelete");
+      const json = await mod.checkDelete(category.id);
       if (json.error) {
         alert(json.error || "Fehler bei Loesch-Pruefung");
         return;
@@ -44,7 +41,7 @@ function CategoryActions({
       if (!confirm("Kategorie wirklich loeschen?")) return;
 
       startTransition(async () => {
-        const result = await deleteCategoryAction(category.id);
+        const result = await deleteCategory(category.id);
         if (!result.success) {
           alert(result.error || "Kategorie konnte nicht geloescht werden.");
           return;
@@ -136,19 +133,14 @@ function InlineAddButton({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/categories/add", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          name: name.trim(),
-          slug: slug.trim() || undefined,
-          parentId: category.id,
-        }),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      const created = (json.created || json) as Category;
-      if (handlers?.onAdd) handlers.onAdd(category.id, created);
+      const mod =
+        await import("@/app/dashboard/admin/categories/actions/addNewCategory");
+      const created = await mod.addNewCategory(
+        name.trim(),
+        slug.trim() || undefined,
+        category.id,
+      );
+      if (handlers?.onAdd) handlers.onAdd(category.id, created as Category);
       setOpen(false);
       setName("");
       setSlug("");
@@ -315,19 +307,13 @@ export function getColumns(
           async function save() {
             setLoading(true);
             try {
-              const res = await fetch("/api/admin/categories/update", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  id: item.id,
-                  name: name.trim(),
-                  slug: slug?.trim(),
-                  parentId: parentId === "" ? null : parentId,
-                }),
+              const mod =
+                await import("@/app/dashboard/admin/categories/actions/updateCategory");
+              const updated = await mod.updateCategory(item.id, {
+                name: name.trim(),
+                slug: slug?.trim(),
+                parentId: parentId === "" ? null : parentId,
               });
-              const json = await res.json();
-              if (json.error) throw new Error(json.error);
-              const updated = json.updated || json;
               if (handlers?.onUpdate) handlers.onUpdate(item.id, updated);
               setEditing(false);
             } catch (e) {

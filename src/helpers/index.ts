@@ -1,7 +1,16 @@
 import {Decimal} from "@prisma/client/runtime/client.js";
 
-export function convertDecimalToNumber(obj: unknown): unknown {
-  if (Array.isArray(obj)) return obj.map(convertDecimalToNumber);
+// Convert any Prisma Decimal-like values to plain numbers recursively.
+// Generic return type preserves the input shape so callers don't need to cast.
+export function convertDecimalToNumber<T>(obj: T): T {
+  // Use any internally for mutation, but ensure we return the original generic type.
+  // Handle arrays first
+  if (Array.isArray(obj)) {
+    return (obj as unknown[]).map((v) =>
+      convertDecimalToNumber(v),
+    ) as unknown as T;
+  }
+
   if (obj && typeof obj === "object") {
     const newObj: Record<string, unknown> = {};
     for (const key in obj as Record<string, unknown>) {
@@ -37,7 +46,7 @@ export function convertDecimalToNumber(obj: unknown): unknown {
         newObj[key] = value;
       }
     }
-    return newObj;
+    return newObj as unknown as T;
   }
   return obj;
 }
