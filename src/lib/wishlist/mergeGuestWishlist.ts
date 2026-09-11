@@ -12,7 +12,7 @@ export async function mergeGuestWishlist(): Promise<{
     let productIds: string[] = [];
     try {
       productIds = JSON.parse(raw) as string[];
-    } catch (e) {
+    } catch {
       // invalid payload -> clear it
       localStorage.removeItem("guest_wishlist");
       return {ok: true, merged: false};

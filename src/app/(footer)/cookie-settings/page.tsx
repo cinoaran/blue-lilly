@@ -2,11 +2,9 @@
 
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import {Card} from "@/components/ui/card";
-import {useState} from "react";
 
 export default function CookieSettingsPage() {
-  const [analytics, setAnalytics] = useState(true);
-  const [marketing, setMarketing] = useState(false);
+  // state placeholders removed because this demo page does not persist cookie choices
 
   return (
     <main className="container relative mx-auto max-w-[85vw]">

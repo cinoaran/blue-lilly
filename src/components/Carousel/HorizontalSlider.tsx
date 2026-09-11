@@ -29,7 +29,7 @@ export default async function HeaderCarousel() {
         <h1 className="absolute top-0 text-[2.5rem] md:text-[4rem] xl:text-[6rem] font-medium text-center text-nowrap">
           Blue Lilly`s Catworld
         </h1>
-        <div className="relative text-center justify-center z-20 size-120 md:size-180">
+        <div className="relative text-center justify-center z-20 size-110 md:size-180">
           <Image
             src="/shop/blue-lilly-image/lilly-im-liegen.png"
             alt="Keine Slidebilder verfügbar"
@@ -41,13 +41,13 @@ export default async function HeaderCarousel() {
         <div className="flex flex-col items-center justify-center w-full -mt-20 z-20">
           <ul className="flex items-start justify-center gap-5 md:gap-10 text-foreground hover:underlined">
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              <Link href="/search/kids">Kids</Link>
+              <Link href="/search/young">Young</Link>
             </li>
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              <Link href="/search/teens">Teens</Link>
+              <Link href="/search/adults">Adult</Link>
             </li>
             <li className="text-center text-lg md:text-2xl uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-32 md:w-42">
-              <Link href="/search/adults">Adults</Link>
+              <Link href="/search/senior">Senior</Link>
             </li>
           </ul>
         </div>

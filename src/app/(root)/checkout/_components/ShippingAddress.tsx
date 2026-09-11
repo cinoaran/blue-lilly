@@ -130,6 +130,25 @@ export default function ShippingAddressStep({
   const billingValues = watch("billing");
   const shippingValues = watch("shipping");
 
+  // If user didn't manually toggle the sameAsBilling control and the
+  // billing address becomes valid, prefer using billing as shipping so the
+  // user doesn't need to fill shipping fields explicitly.
+  useEffect(() => {
+    if (userToggledSameRef.current) return;
+    const billingValid = addressSchema.safeParse(billingValues ?? {}).success;
+    // consider shipping provided if any non-empty field exists
+    const shippingProvided = !!(
+      shippingValues &&
+      Object.values(shippingValues).some(
+        (v) => v !== null && v !== "" && typeof v !== "undefined",
+      )
+    );
+    if (billingValid && !shippingProvided) {
+      setSameAsBilling(true);
+      setValue("sameAsBilling", true);
+    }
+  }, [billingValues, shippingValues, setValue]);
+
   // Apply server-side errors when provided
   useEffect(() => {
     if (!serverErrors) return;
@@ -267,8 +286,8 @@ export default function ShippingAddressStep({
       <h2 className="text-lg font-semibold mb-4">Rechnungsadresse</h2>
 
       <div className="space-y-10">
-        <div className="grid grid-cols-2 gap-2 place-items-center w-full">
-          <div className="flex flex-col gap-1 items-center justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 place-items-start">
+          <div className="flex flex-col gap-1 items-start justify-center">
             <label id="billing.firstName" className="underlined">
               <Input
                 {...register("billing.firstName")}
@@ -456,10 +475,10 @@ export default function ShippingAddressStep({
 
         {!sameAsBilling && (
           <>
-            <div>
+            <div className="my-10">
               <h3 className="text-lg font-semibold mb-4">Lieferadresse</h3>
-              <div className="grid grid-cols-2 gap-2 place-items-center w-full">
-                <div className="flex flex-col gap-1 items-start justify-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 place-items-start">
+                <div className="flex flex-col gap-1 items-start justify-center">
                   <label id="shipping.firstName" className="underlined">
                     <Input
                       {...register("shipping.firstName")}

@@ -1,6 +1,6 @@
 import {cookies, headers} from "next/headers";
 import prisma from "@/lib/prisma";
-import {auth} from "@/lib/auth/auth";
+// removed unused import 'auth'
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import type {
   Cart,

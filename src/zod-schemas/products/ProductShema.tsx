@@ -23,7 +23,7 @@ export const ProductSchema = z
             z
               .object({
                 id: z.string(),
-                baseColor: z.string().optional(),
+                baseColor: z.string().nullable().optional(),
                 displayColor: z.string().optional(),
                 sellPrice: z.number().min(1, "Sell price required"),
                 entryPrice: z.number().min(1, "Entry price required"),

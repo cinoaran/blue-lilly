@@ -64,7 +64,7 @@ export default function VariantForm({
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Enter size (e.g., M, 42, 10cm)"
-                  className="w-full"
+                  className="w-full border-b-[0.3px] border-border focus-visible:underlined py-6 text-[0.6rem] md:text-lg"
                 />
               </FormControl>
               <FormMessage />

@@ -11,8 +11,12 @@ export interface ProductBase {
   isFeatured: boolean;
   brand: string;
   categoryId: string;
-  subcategory: string;
+  subcategory: string | null;
   slug: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  rating?: number;
+  numReviews?: number;
 }
 
 export interface ProductWithVariants extends ProductBase {
@@ -23,6 +27,7 @@ export interface ProductWithCategoryAndVariants extends ProductBase {
     id: string;
     name: string;
     slug: string;
+    parentId?: string | null;
   };
   variants: Variant[];
 }

@@ -113,13 +113,14 @@ const Loginform = () => {
               >
                 Email
               </FormLabel>
-              <FormControl>
+              <FormControl className="py-3 w-full">
                 <Input
+                  aria-label="Email"
                   disabled={isPending}
                   type="email"
                   placeholder="max@muster.de"
                   {...field}
-                  className="w-full border-b-[0.3px] rounded-md outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                  className="w-full border-b-[0.3px] border-border focus-visible:underlined py-5 text-[0.6rem] md:text-lg"
                 />
               </FormControl>
               <FormMessage />
@@ -142,9 +143,10 @@ const Loginform = () => {
               </FormLabel>
               <FormControl>
                 <PasswordInput
+                  aria-label="Password"
                   disabled={isPending}
                   {...field}
-                  className="w-full border-b-[0.3px] rounded-md outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                  className="w-full border-b-[0.3px] border-border focus-visible:underlined py-5 text-[0.6rem] md:text-lg"
                 />
               </FormControl>
               <FormMessage />

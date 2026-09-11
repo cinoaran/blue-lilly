@@ -2,9 +2,8 @@
 
 import {redirect} from "next/navigation";
 import {headers} from "next/headers";
-import {auth} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
-import {createStripeCheckout} from "@/lib/Stripe/orders";
+// removed unused imports: auth, createStripeCheckout
 
 type CreateCheckoutActionInput = {
   shippingAddressId: string;

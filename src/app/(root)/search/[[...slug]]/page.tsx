@@ -121,17 +121,18 @@ const CategoryPage = async ({params, searchParams}: Props) => {
         })
       : {products: []};
 
-    let safeProducts = (finalProducts ?? []).map(
-      (p) => convertDecimalToNumber(p) as unknown,
-    ) as ProductWithVariants[];
-    let safeBrowseProducts = (browseProducts ?? []).map(
-      (p) => convertDecimalToNumber(p) as unknown,
-    ) as ProductWithVariants[];
+    let safeProducts = (finalProducts ?? [])
+      .map((p) => convertDecimalToNumber(p) as unknown)
+      .filter(Boolean) as ProductWithVariants[];
+    let safeBrowseProducts = (browseProducts ?? [])
+      .map((p) => convertDecimalToNumber(p) as unknown)
+      .filter(Boolean) as ProductWithVariants[];
 
     // If the user is viewing the wishlist route, filter the server-side search
     // results to only include products that appear in the user's wishlist. This
     // allows existing search filters (query, sort) to be applied before
     // restricting to wishlist items.
+    let allowedIds: string[] = [];
     if (category === "wishlist") {
       let session = null;
       try {
@@ -139,6 +140,12 @@ const CategoryPage = async ({params, searchParams}: Props) => {
       } catch {
         session = null;
       }
+
+      // Collect allowed IDs from the server search results so the client can
+      // intersect guest wishlist ids with the current result set.
+      allowedIds = (finalProducts ?? [])
+        .map((p) => p?.id)
+        .filter(Boolean) as string[];
 
       if (session && session.user && session.user.id) {
         const wishlist = await prisma.wishlist.findUnique({
@@ -153,9 +160,13 @@ const CategoryPage = async ({params, searchParams}: Props) => {
         safeBrowseProducts = safeBrowseProducts.filter(
           (p) => p && wishSet.has(p.id),
         );
+        // For logged-in users restrict allowedIds to the wishlist intersection
+        allowedIds = safeProducts.map((p) => p.id);
       } else {
-        // No session: leave safeProducts untouched. Client-side `WishlistGridClient`
-        // will render guest wishlist items from localStorage when available.
+        // No session: clear server-side products so the client will load the
+        // guest wishlist from localStorage and then fetch product details.
+        safeProducts = [];
+        safeBrowseProducts = [];
       }
     }
 
@@ -166,7 +177,12 @@ const CategoryPage = async ({params, searchParams}: Props) => {
 
     return (
       <>
-        {safeProducts.length === 0 ? (
+        {category === "wishlist" ? (
+          <WishlistGridClient
+            initialProducts={safeProducts}
+            allowedIds={allowedIds}
+          />
+        ) : safeProducts.length === 0 ? (
           <div className="space-y-6">
             <div className="rounded-md border border-border bg-muted/30 p-6 text-sm text-foreground/80">
               {query
@@ -189,9 +205,12 @@ const CategoryPage = async ({params, searchParams}: Props) => {
                   </p>
                 </div>
 
-                <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
-                  {safeBrowseProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-9 w-[85vw] mx-auto">
+                  {safeBrowseProducts.map((product, idx) => (
+                    <ProductCard
+                      key={product.id ?? `prod-fallback-${idx}`}
+                      product={product}
+                    />
                   ))}
                 </div>
               </section>
@@ -204,12 +223,15 @@ const CategoryPage = async ({params, searchParams}: Props) => {
         category === "wishlist" ? (
           <WishlistGridClient
             initialProducts={safeProducts}
-            allowedIds={safeProducts.map((p) => p.id)}
+            allowedIds={allowedIds}
           />
         ) : (
-          <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] md:w-[95vw]">
-            {safeProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-9 w-[85vw] md:w-[95vw]">
+            {safeProducts.map((product, idx) => (
+              <ProductCard
+                key={product.id ?? `prod-fallback-${idx}`}
+                product={product}
+              />
             ))}
           </div>
         )}
@@ -252,9 +274,9 @@ const CategoryPage = async ({params, searchParams}: Props) => {
           }
         >
           <h3 className="w-full text-left font-thin text-4xl p-6 text-foreground">
-            Filter Products {categoryLabel && `in ${categoryLabel}`}
+            Ihre Suche {categoryLabel && `in ${categoryLabel}`}
           </h3>
-          <div className="flex flex-col sm:flex-row items-center md:justify-between mx-auto gap-10 mb-10 w-[65vw]">
+          <div className="flex flex-col sm:flex-row items-center md:justify-between mx-auto gap-10 mb-10 w-[65vw] z-40">
             <div className="flex items-center justify-center gap-4 flex-1">
               <SearchInput
                 defaultQuery={query}

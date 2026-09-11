@@ -48,11 +48,16 @@ const ShoppingCartButton = ({onClick, count = 0}: ShoppingCartButtonProps) => {
 
             <span
               className={
-                `flex items-center justify-center icon rounded-full transition-colors duration-200 ease-in-out cursor-pointer z-10 p-1` +
+                `flex items-center justify-center icon rounded-full transition-colors duration-200 ease-in-out cursor-pointer z-10 p-1 ` +
                 (count && count > 0 ? "text-black" : "text-white")
               }
+              style={
+                count && count > 0
+                  ? {background: "var(--brand-sage)"}
+                  : undefined
+              }
             >
-              <ShoppingBag size={24} className="w-6 h-6 text-white" />
+              <ShoppingBag size={24} className="w-6 h-6" />
             </span>
           </div>
         </TooltipTrigger>

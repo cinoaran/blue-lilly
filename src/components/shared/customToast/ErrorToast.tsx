@@ -16,7 +16,7 @@ const ErrorToast = ({message, duration = 4000, onClose}: ErrorToastProps) => {
     const t = setTimeout(() => {
       try {
         onClose();
-      } catch (e) {
+      } catch {
         // ignore
       }
     }, duration);

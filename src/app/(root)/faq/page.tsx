@@ -7,6 +7,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import {Card} from "@/components/ui/card";
+import Image from "next/image";
 
 const FaqPage = () => {
   return (
@@ -18,7 +19,7 @@ const FaqPage = () => {
         ]}
       />
 
-      <Card className="w-[85vw] md:w-fit mx-auto my-16 p-12">
+      <Card className="relative z-20 w-[85vw] md:w-[40vw] mx-auto my-16 p-12">
         <h1 className="text-3xl font-semibold mb-6">Häufige Fragen (FAQ)</h1>
 
         <Accordion type="single" collapsible className="w-full">
@@ -100,6 +101,16 @@ const FaqPage = () => {
           </div>
         </Accordion>
       </Card>
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 z-0 hidden md:block">
+        <Image
+          src="/shop/blue-lilly-image/lilly-black-green-eyes.png"
+          alt="FAQ Image"
+          width={420}
+          height={420}
+          className="object-contain"
+          sizes="(max-width: 800px) 50vw, 420px"
+        />
+      </div>
     </main>
   );
 };

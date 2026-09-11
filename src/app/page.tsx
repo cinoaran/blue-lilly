@@ -13,6 +13,7 @@ import ProductsSkeleton from "./(root)/skeletons/ProductsSkeleton";
 import Breadcrumbs from "@/components/shared/beardcrumbs/Breadcrumbs";
 import SearchInput from "@/components/shared/searchBar";
 import Image from "next/image";
+import Link from "next/link";
 
 type SearchParams = Promise<{
   [key: string]: string | string[] | undefined;
@@ -21,7 +22,7 @@ type SearchParams = Promise<{
 export default async function Home(props: {searchParams: SearchParams}) {
   const searchParams = await props.searchParams;
 
-  const limit = Number(searchParams.limit) || 4;
+  const limit = Number(searchParams.limit) || 5;
   // fetch hierarchical category options suitable for the shared SearchInput
   const categoryOptions = await getAllCategoryTree();
 
@@ -55,7 +56,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
         </div>
       </div>
     ) : (
-      <div className="container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-12 mx-auto max-w-[85vw]">
+      <div className="container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-12 mx-auto max-w-[85vw]">
         {(safeProducts as ProductWithVariants[]).map((product, idx) => (
           <ProductCard
             key={`prod-${(product as ProductWithVariants).id ?? (product as ProductWithVariants).slug ?? idx}`}
@@ -87,33 +88,48 @@ export default async function Home(props: {searchParams: SearchParams}) {
         <h2 className="text-4xl font-semibold text-left w-full px-12">
           Philosopie & Partnerschaften
         </h2>
-        <div className="flex items-center justify-center gap-12">
-          <div>
-            <Image
-              src="/shop/Medaillen/metzgerei.png"
-              alt="Description"
-              width={140}
-              height={140}
-              className="rounded-md"
-            />
+        <div className="flex flex-col md:flex-row items-center justify-center gap-12">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Link href="/blog">
+              <Image
+                src="/shop/Medaillen/metzgerei.png"
+                alt="Description"
+                width={140}
+                height={140}
+                className="rounded-md hover:scale-105 transition-transform duration-300"
+              />
+            </Link>
+            <h4 className="text-center max-w-42 italic">
+              Fachverbandstagung 2025
+            </h4>
           </div>
-          <div>
-            <Image
-              src="/shop/Medaillen/umweltkon.png"
-              alt="Description"
-              width={140}
-              height={140}
-              className="rounded-md"
-            />
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Link href="/blog">
+              <Image
+                src="/shop/Medaillen/umweltkon.png"
+                alt="Description"
+                width={140}
+                height={140}
+                className="rounded-md hover:scale-105 transition-transform duration-300"
+              />
+            </Link>
+            <h4 className="text-center max-w-42 italic">
+              Umweltkonzepte UmwKon 2026
+            </h4>
           </div>
-          <div>
-            <Image
-              src="/shop/Medaillen/tierwohl.png"
-              alt="Description"
-              width={140}
-              height={140}
-              className="rounded-md"
-            />
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Link href="/blog">
+              <Image
+                src="/shop/Medaillen/tierwohl.png"
+                alt="Description"
+                width={140}
+                height={140}
+                className="rounded-md hover:scale-105 transition-transform duration-300"
+              />
+            </Link>
+            <h4 className="text-center max-w-42 italic">
+              Berliner Tierschutz 2024
+            </h4>
           </div>
         </div>
       </div>
@@ -130,7 +146,7 @@ export default async function Home(props: {searchParams: SearchParams}) {
           <h2 className="text-4xl font-semibold text-left w-full px-12">
             Das passende Produkt finden
           </h2>
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-5 my-10 z-10">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-10 p-5 my-10 z-40">
             <div className="flex items-center justify-center gap-4 flex-1">
               <SearchInput
                 defaultQuery={defaultQuery}

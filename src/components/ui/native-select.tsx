@@ -17,7 +17,7 @@ const NativeSelect = React.forwardRef<
         data-slot="native-select"
         data-size={size}
         className={cn(
-          "h-9 md:w-full min-w-0 appearance-none rounded-md ring-[0.3px] ring-ring bg-transparent px-6 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 dark:bg-input/30 dark:hover:bg-input/50",
+          "h-8 md:w-full min-w-0 appearance-none rounded-md border-[0.2px] border-border bg-background px-6 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none selection:bg-red-500 selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 dark:bg-input/30 dark:hover:bg-input/50",
           "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
           "aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
           className,
@@ -40,7 +40,9 @@ function NativeSelectOption({
   return (
     <option
       data-slot="native-select-option"
-      className={cn("bg-[Canvas] text-[CanvasText]", className)}
+      className={cn("text-[CanvasText]", className)}
+      // try to apply theme vars — some browsers honor inline styles on options
+      style={{backgroundColor: "var(--background)", color: "var(--foreground)"}}
       {...props}
     />
   );
@@ -53,7 +55,9 @@ function NativeSelectOptGroup({
   return (
     <optgroup
       data-slot="native-select-optgroup"
-      className={cn("capitalize bg-[Canvas] text-[CanvasText]", className)}
+      className={cn("capitalize", className)}
+      // try to apply theme vars — some browsers honor inline styles on optgroup
+      style={{backgroundColor: "var(--background)", color: "var(--foreground)"}}
       {...props}
     />
   );

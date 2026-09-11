@@ -20,7 +20,7 @@ import {
 import {Card, CardContent} from "../ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Separator} from "@/components/ui/separator";
-import {CirclePile} from "lucide-react";
+import {CirclePile, Heart as HeartIcon} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "../ui/tooltip";
 
 type CartItem = {
@@ -37,9 +37,11 @@ type Cart = {
 const ProductDetail = ({
   product,
   initialCart,
+  initialInWishlist,
 }: {
   product: ProductWithCategoryAndVariants;
   initialCart?: Cart | null;
+  initialInWishlist?: boolean | undefined;
 }) => {
   const searchParams = useSearchParams();
 
@@ -151,7 +153,66 @@ const ProductDetail = ({
   );
   const [isThumbsFading, setIsThumbsFading] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const [addedToWishlist, setAddedToWishlist] = useState(false);
+  const [addedToWishlist, setAddedToWishlist] = useState(
+    Boolean(initialInWishlist ?? false),
+  );
+
+  // On mount, check whether the current product is already in the user's
+  // wishlist. Prefer guest localStorage (`guest_wishlist`) for unauthenticated
+  // users so the page doesn't need a network roundtrip to show the state.
+  React.useEffect(() => {
+    let mounted = true;
+
+    // If server provided the initial state, no client check is necessary.
+    if (typeof initialInWishlist !== "undefined")
+      return () => {
+        mounted = false;
+      };
+
+    try {
+      const rawGuest = window.localStorage.getItem("guest_wishlist");
+      if (rawGuest) {
+        let ids: string[] = [];
+        try {
+          ids = JSON.parse(rawGuest) as string[];
+        } catch {
+          ids = rawGuest
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        if (ids.includes(product.id)) {
+          if (mounted) setAddedToWishlist(true);
+          return () => {
+            mounted = false;
+          };
+        }
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+
+    async function checkWishlist() {
+      try {
+        const res = await fetch("/api/wishlist");
+        if (!res.ok) return; // 401/403 or other non-ok -> ignore
+        const json = await res.json();
+        const payload =
+          json && typeof json === "object" ? (json.wishlist ?? json) : null;
+        const exists = (payload?.items ?? []).some(
+          (it: {productId: string}) => it.productId === product.id,
+        );
+        if (mounted && exists) setAddedToWishlist(true);
+      } catch {
+        // ignore network errors
+      }
+    }
+
+    void checkWishlist();
+    return () => {
+      mounted = false;
+    };
+  }, [product.id, initialInWishlist]);
 
   useEffect(() => {
     setActiveImages(
@@ -174,12 +235,50 @@ const ProductDetail = ({
         body: JSON.stringify({productId: product.id}),
       });
       if (res.status === 401) {
-        window.location.href = "/login";
+        // Fallback for unauthenticated users: persist to guest_wishlist in
+        // localStorage so guests can use the wishlist feature offline. Also
+        // dispatch the `wishlist-updated` event so other UI can react.
+        try {
+          const raw = window.localStorage.getItem("guest_wishlist");
+          let ids: string[] = [];
+          if (raw) {
+            try {
+              ids = JSON.parse(raw) as string[];
+            } catch {
+              ids = raw
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            }
+          }
+          if (!ids.includes(product.id)) ids.push(product.id);
+          try {
+            window.localStorage.setItem("guest_wishlist", JSON.stringify(ids));
+          } catch {
+            window.localStorage.setItem("guest_wishlist", ids.join(","));
+          }
+          try {
+            window.dispatchEvent(
+              new CustomEvent("wishlist-updated", {
+                detail: {
+                  productId: product.id,
+                  inWishlist: true,
+                  wishlist: null,
+                },
+              }),
+            );
+          } catch {}
+          setAddedToWishlist(true);
+        } catch (e) {
+          console.debug(
+            "add to wishlist unauthorized; no guest storage available",
+            e,
+          );
+        }
         return;
       }
       if (res.ok) {
         setAddedToWishlist(true);
-        window.location.href = "/wishlist";
         return;
       }
     } catch (e) {
@@ -241,7 +340,7 @@ const ProductDetail = ({
             </div>
 
             {activeImages.length > 1 && (
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-5 mt-3">
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-5">
                 {activeImages.map((img, index) => {
                   const isActive = index === activeImageIndex;
 
@@ -275,11 +374,38 @@ const ProductDetail = ({
                 })}
               </div>
             )}
+            <div className="flex flex-col items-center justify-center w-full mt-20 z-20">
+              <ul className="flex items-start justify-center gap-5 md:gap-10 text-foreground hover:underlined">
+                <li className="text-center text-md uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-62">
+                  <Link href="/">Zurück zum Shop</Link>
+                </li>
+              </ul>
+            </div>
           </div>
           <div className="flex-1 flex flex-col gap-1 m-0 md:m-8 w-full lg:px-5">
             <div className="flex flex-col items-center justify-center gap-5 border-b-[0.5px] border-border py-10">
-              <h2 className="font-bold flex items-center gap-2">
+              <h2 className="font-bold flex items-center gap-2 text-2xl">
                 {product.brand} {product.name}
+                {(initialInWishlist || addedToWishlist) && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="ml-2">
+                        <span className="rounded-full bg-background/60 flex items-center justify-center aspect-square w-8 h-8 p-1">
+                          <HeartIcon
+                            size={24}
+                            className="text-destructive"
+                            fill="currentColor"
+                            stroke="none"
+                            aria-hidden
+                          />
+                        </span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" align="center">
+                      Dieses Produkt ist bereits in der Wunschliste
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </h2>
               <div className="flex items-center gap-2">
                 <Badge
@@ -295,6 +421,9 @@ const ProductDetail = ({
                   {product.slug}
                 </Badge>
               </div>
+              <p className="text-md text-foreground w-full text-left my-2">
+                {product.smallDesc}
+              </p>
             </div>
             {/* Size pills selector (replaces carousel navigation) */}
             <div className="flex flex-col gap-4 border-b-[0.5px] border-border py-3">
@@ -348,7 +477,7 @@ const ProductDetail = ({
               </div>
               {/* Option thumbnails for selected size */}
               <div
-                className={`grid grid-cols-5 gap-5 transition-opacity duration-150 py-2 ${
+                className={`grid grid-cols-5 gap-5 transition-opacity duration-150 p-2 ${
                   isThumbsFading ? "opacity-0" : "opacity-100"
                 }`}
               >
@@ -365,8 +494,8 @@ const ProductDetail = ({
                     <button
                       key={opt.id}
                       type="button"
-                      className={`relative aspect-7/8 rounded-md border-border bg-primary transition-all duration-200 ${
-                        isActive ? "ring-3 ring-primary/70" : ""
+                      className={`relative aspect-7/8 rounded-md border-border bg-transparent transition-all duration-200 ${
+                        isActive ? "ring-3 ring-primary" : ""
                       } ${!optAvailable ? "opacity-60" : ""}`}
                       onClick={() => {
                         // Always allow selecting an option even if out of stock
@@ -450,34 +579,113 @@ const ProductDetail = ({
                   );
                 }
 
-                // Fallback: show link to wishlist for manual add or if automatic add not possible.
+                // Fallback: show a button that adds the product to the wishlist
+                // via the API (no navigation). If the user is unauthenticated we
+                // show a small hint with a login link instead of redirecting.
                 return (
-                  <Link
-                    className={`w-full md:w-3/4 text-center bg-red-400 px-3 py-0 rounded-md text-lg font-semibold uppercase hover:bg-primary/90 transition`}
-                    href={`/wishlist?productId=${product.id}&variantId=${displayVariant?.id}&optionId=${displayOption?.id}`}
-                  >
-                    <div className="flex items-center justify-center gap-5 text-white">
-                      <h4>
-                        {isAddingToWishlist
-                          ? "Wird hinzugefügt..."
-                          : "Zur Wunschliste"}
-                      </h4>
-                      <span className="flex items-center justify-center pl-7 py-2 border-l border-border ">
-                        {displayOption?.sellPrice &&
-                          `${formatPrice(displayOption.sellPrice)}`}
-                      </span>
-                    </div>
-                  </Link>
+                  <div className="w-full md:w-3/4 text-center">
+                    <button
+                      type="button"
+                      disabled={isAddingToWishlist || addedToWishlist}
+                      className={`w-full text-center bg-red-400 px-3 py-0 rounded-md text-lg font-semibold uppercase transition ${
+                        isAddingToWishlist || addedToWishlist
+                          ? "opacity-60 cursor-not-allowed"
+                          : "hover:bg-primary/90"
+                      }`}
+                      onClick={async () => {
+                        if (!displayOption?.id) return;
+                        try {
+                          setIsAddingToWishlist(true);
+                          const res = await fetch("/api/wishlist", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({productId: product.id}),
+                          });
+                          if (res.status === 401) {
+                            // Guest fallback: persist to localStorage so non-authenticated
+                            // users can still use the wishlist feature.
+                            try {
+                              const raw =
+                                window.localStorage.getItem("guest_wishlist");
+                              let ids: string[] = [];
+                              if (raw) {
+                                try {
+                                  ids = JSON.parse(raw) as string[];
+                                } catch {
+                                  ids = raw
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean);
+                                }
+                              }
+                              if (!ids.includes(product.id))
+                                ids.push(product.id);
+                              try {
+                                window.localStorage.setItem(
+                                  "guest_wishlist",
+                                  JSON.stringify(ids),
+                                );
+                              } catch {
+                                window.localStorage.setItem(
+                                  "guest_wishlist",
+                                  ids.join(","),
+                                );
+                              }
+                              try {
+                                window.dispatchEvent(
+                                  new CustomEvent("wishlist-updated", {
+                                    detail: {
+                                      productId: product.id,
+                                      inWishlist: true,
+                                      wishlist: null,
+                                    },
+                                  }),
+                                );
+                              } catch {}
+                              setAddedToWishlist(true);
+                            } catch (e) {
+                              console.error(
+                                "Failed to persist guest wishlist",
+                                e,
+                              );
+                            }
+                            return;
+                          }
+                          if (res.ok) {
+                            setAddedToWishlist(true);
+                            return;
+                          }
+                        } catch (e) {
+                          console.error("manual add to wishlist failed", e);
+                        } finally {
+                          setIsAddingToWishlist(false);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-5 text-white">
+                        <h4>
+                          {isAddingToWishlist
+                            ? "Wird hinzugefügt..."
+                            : addedToWishlist
+                              ? "Bereits in Wunschliste"
+                              : "Zur Wunschliste"}
+                        </h4>
+                        <span className="flex items-center justify-center pl-7 py-2 border-l border-border ">
+                          {displayOption?.sellPrice &&
+                            `${formatPrice(displayOption.sellPrice)}`}
+                        </span>
+                      </div>
+                    </button>
+                    {/** Guests use localStorage-based wishlist; no login hint shown */}
+                    <span className="text-xs text-semibold text-muted-foreground">
+                      Registrierte Kunden werden bei einer Verfügbarkeit
+                      umgehend benachrichtigt.
+                    </span>
+                  </div>
                 );
               })()}
             </div>
             <div className="flex flex-col gap-3 items-start justify-center my-2">
-              <h3 className="text-2xl font-bold border-b-[0.5px] border-border w-full pb-2">
-                Produktbeschreibung
-              </h3>
-              <p className="text-sm text-foreground w-full text-left">
-                {product.smallDesc}
-              </p>
               <Accordion type="multiple" className="w-full">
                 <AccordionItem value="description">
                   <AccordionTrigger className="border-none text-[19px] font-bold text-foreground text-left w-full pb-2">

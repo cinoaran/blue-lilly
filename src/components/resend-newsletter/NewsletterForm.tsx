@@ -7,6 +7,7 @@ import {Button} from "../ui/button";
 import Link from "next/link";
 import SuccessToast from "@/components/shared/customToast/SuccessToast";
 import ErrorToast from "@/components/shared/customToast/ErrorToast";
+import Image from "next/image";
 
 type Props = {
   onSuccess?: () => void;
@@ -88,78 +89,100 @@ export default function NewsletterForm({onSuccess, title}: Props) {
   }, [email]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-128 w-full overflow-hidden p-4">
-      <h1 className="absolute -top-3 -left-2 md:-top-6 md:-left-8 font-bold text-xl lg:text-4xl mb-4 bg-brand-sage rounded-full p-6 md:p-10 ">
-        5,0 %
-      </h1>
-
-      {title === null ? null : (
-        <span className="font-normal text-left text-md md:text-xl">
-          {typeof title === "string"
-            ? title
-            : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang. Jetzt 5,0 % sichern!"}
-        </span>
-      )}
-
-      <form
-        onSubmit={handleSubmit}
-        className="backdrop-blur-xs w-full md:max-w-3/4"
-      >
-        <div className="flex items-start justify-start gap-6">
-          <Input
-            aria-label="E-Mail"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Deine E-Mail"
-            className="flex-1 p-6 rounded"
-            required
+    <div className="relative flex flex-col md:flex-row items-center justify-center gap-5 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-auto overflow-hidden w-full p-4">
+      <Gift className="absolute top-2 -left-32 text-background size-72 z-0" />
+      <div className="flex-1 flex items-center justify-center mb-4 z-10">
+        <Link href="/product/skin-cout-oel?size=70&optionId=052423a9-5946-42e1-969e-adcc0e0fe060">
+          <Image
+            src="/shop/Vitality/Haut-Haare-Schutz/skin-coat-oil-100ml.png"
+            alt="Newsletter"
+            width={300}
+            height={200}
+            className="hover:scale-105 transition-transform duration-300"
           />
-          <Button
-            type="submit"
-            disabled={loading || !!emailError || !consent}
-            className="px-4 py-2 bg-primary text-foreground rounded disabled:opacity-50"
-          >
-            {loading ? "..." : "Anmelden"}
-          </Button>
-        </div>
-        <label className="flex items-center gap-4 mt-8 text-sm">
-          <input
-            type="checkbox"
-            className="w-4 h-4 bg-primary cursor-pointer"
-            checked={consent}
-            onChange={(e) => setConsent(e.target.checked)}
-            required
-          />
-          <span className="text-foreground">
-            Ich möchte den Newsletter erhalten und stimme der
-            <Link
-              href="/datenschutz"
-              className="text-destructive underlined px-1"
-            >
-              Datenschutzerklärung
-            </Link>
-            zu.
-          </span>
-        </label>
-        <div className="my-2 flex flex-col justify-center">
-          {emailError ? (
-            <ErrorToast
-              message={emailError}
-              duration={4000}
-              onClose={() => setEmailError(null)}
-            />
-          ) : null}
-        </div>
-        {message && (
-          <SuccessToast
-            message={message}
-            duration={4000}
-            onClose={() => setMessage(null)}
-          />
+        </Link>
+      </div>
+      <div className="flex-3">
+        <h3 className="font-bold text-lg md:text-4xl mb-12 text-center">
+          Heute wollen wir Ihnen eine Freude machen!
+        </h3>
+        {title === null ? null : (
+          <div className="font-normal text-left text-md md:text-xl">
+            {typeof title === "string" ? (
+              <span className="font-normal text-left text-md md:text-xl">
+                {title}
+              </span>
+            ) : (
+              <span className="font-normal text-left text-md md:text-xl">
+                Melden Sie sich jetzt zu unserem Newsletter an und wir legen das
+                hochwertige Blue Lilly&apos;s Best™ Skin & Coat Oil (100 ml) als
+                reines Gratis-Geschenk zu Ihrer nächsten Buchung dazu.
+              </span>
+            )}
+          </div>
         )}
-      </form>
-      <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
+
+        <hr className="w-full border-foreground/10 my-4" />
+
+        <form
+          onSubmit={handleSubmit}
+          className="backdrop-blur-xs w-full md:max-w-3/4"
+        >
+          <div className="flex items-start justify-start gap-6">
+            <Input
+              aria-label="E-Mail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Deine E-Mail"
+              className="w-full border-b-[0.3px] border-border focus-visible:underlined py-6 text-[0.6rem] md:text-lg"
+              required
+            />
+            <Button
+              type="submit"
+              disabled={loading || !!emailError || !consent}
+              className="px-4 py-6 bg-primary text-white rounded disabled:opacity-50"
+            >
+              {loading ? "..." : "Anmelden"}
+            </Button>
+          </div>
+          <label className="flex items-center gap-4 mt-8 text-sm">
+            <input
+              type="checkbox"
+              className="w-4 h-4 bg-primary cursor-pointer"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              required
+            />
+            <span className="text-foreground">
+              Jetzt Anmelden und
+              <Link
+                href="/datenschutz"
+                className="text-destructive underlined px-1"
+              >
+                Datenschutzerklärung
+              </Link>
+              zu.
+            </span>
+          </label>
+          <div className="my-2 flex flex-col justify-center">
+            {emailError ? (
+              <ErrorToast
+                message={emailError}
+                duration={4000}
+                onClose={() => setEmailError(null)}
+              />
+            ) : null}
+          </div>
+          {message && (
+            <SuccessToast
+              message={message}
+              duration={4000}
+              onClose={() => setMessage(null)}
+            />
+          )}
+        </form>
+      </div>
     </div>
   );
 }

@@ -86,17 +86,16 @@ export default async function CartPage() {
       <h1 className="text-left text-3xl font-semibold mb-4">Warenkorb</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-2">
+        <div className="md:col-span-4">
           {items.length === 0 ? (
-            <div className="p-6 border-[0.3px] border-border rounded text-center">
+            <div className="p-6 border-[0.3px] border-border rounded-md text-center">
               Dein Warenkorb ist leer.
-              <div className="mt-4">
-                <Link
-                  href="/"
-                  className="inline-block px-4 py-2 bg-black text-white rounded"
-                >
-                  Zurück zum Shop
-                </Link>
+              <div className="flex flex-col items-center justify-center w-full mt-12 z-20">
+                <ul className="flex items-start justify-center gap-5 md:gap-10 text-foreground hover:underlined">
+                  <li className="text-center text-lg uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-52">
+                    <Link href="/">Zurück zum Shop</Link>
+                  </li>
+                </ul>
               </div>
             </div>
           ) : (
@@ -132,7 +131,7 @@ export default async function CartPage() {
                 <div className="flex items-center justify-between gap-2 mb-4 text-md">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Truck className="bg-background/20 p-1 border-[0.3px] border-border text-foreground rounded-sm inline-block" />
-                    Versand
+                    Versand Kostenfrei ab 100€ Bestellwert
                   </div>
                   <div className="font-medium">{formatPrice(shipping)}</div>
                 </div>
@@ -146,7 +145,6 @@ export default async function CartPage() {
                   <div className="font-semibold">{formatPrice(total)}</div>
                 </div>
                 <hr className="border-t-[0.3px] border-border pt-4 mt-4" />
-
                 <div className="mt-4">
                   {/* Fetch server-side addresses and pass to client wrapper */}
                   {/* compute preview in cents for client */}

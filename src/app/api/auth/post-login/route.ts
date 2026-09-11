@@ -1,4 +1,4 @@
-import {auth, type Session} from "@/lib/auth";
+import {type Session} from "@/lib/auth";
 import {getSessionOnce} from "@/lib/session/sessionCache";
 import {mergeAnonymousCartIntoUserCart} from "@/lib/cart/mergeAnonymousCartIntoUserCart";
 import {NextRequest, NextResponse} from "next/server";

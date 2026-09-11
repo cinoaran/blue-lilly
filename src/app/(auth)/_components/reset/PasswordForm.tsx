@@ -100,9 +100,10 @@ function ResetPasswordContent() {
               </FormLabel>
               <FormControl>
                 <PasswordInput
+                  aria-label="Password"
                   disabled={isPending}
                   {...field}
-                  className="w-full border-b-[0.3px] rounded-md outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                  className="w-full border-b-[0.3px] border-border focus-visible:underlined py-6 text-[0.6rem] md:text-lg"
                 />
               </FormControl>
               <FormMessage />
@@ -125,9 +126,10 @@ function ResetPasswordContent() {
               </FormLabel>
               <FormControl>
                 <PasswordInput
+                  aria-label="Confirm password"
                   disabled={isPending}
                   {...field}
-                  className="w-full border-b-[0.3px] rounded-md outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-5 text-[0.6rem] md:text-lg"
+                  className="w-full border-b-[0.3px] border-border focus-visible:underlined py-6 text-[0.6rem] md:text-lg"
                 />
               </FormControl>
               <FormMessage />

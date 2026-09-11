@@ -23,7 +23,7 @@ function Input({className, type, suffix, ...props}: InputProps) {
         data-slot="input"
         // ensure transparent background and no shadow; also target file button
         className={cn(
-          "appearance-none placeholder:text-foreground/50 selection:bg-primary selection:text-primary-foreground h-9 w-full min-w-0 px-3 py-1 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:appearance-none file:shadow-none file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          "appearance-none placeholder:text-foreground selection:bg-background/90 selection:text-primary-foreground h-9 w-full min-w-0 px-3 py-1 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:appearance-none file:shadow-none file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
           "focus-visible:border-b-[0.3px] focus-visible:border-underlined focus-visible:ring-offset-0",
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
           suffix ? "pr-8" : "",

@@ -130,8 +130,8 @@
   --destructive-foreground: oklch(20% 0.025 25);
 
   --border: oklch(36% 0.03 245);
-  --input: oklch(34% 0.03 245);
-  --ring: oklch(73% 0.08 235);
+  --input: oklch(20% 0.025 245);
+  --ring: oklch(19.168% 0.00201 286.055);
 
   --sheet: oklch(23% 0.03 245);
   --sheet-foreground: var(--foreground);
@@ -636,6 +636,62 @@
     margin: 1rem 0;
     padding-left: 1.5rem;
     list-style-type: disc;
+  }
+
+  /* Marquee (scrolling announcement) */
+  @keyframes lilly-marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .marquee {
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    /* soft fade at edges for smooth in/out */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+  }
+
+  .marquee__inner {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    animation: lilly-marquee 60s linear infinite;
+  }
+
+  .marquee__copy {
+    display: inline-block;
+    padding-right: 6rem;
+  }
+
+  .marquee:hover .marquee__inner,
+  .marquee:focus-within .marquee__inner {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__inner {
+      animation: none;
+      transform: none;
+      padding-left: 0;
+    }
   }
 
   .product-content ol {

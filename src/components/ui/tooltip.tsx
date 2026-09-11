@@ -34,21 +34,32 @@ function TooltipContent({
   className,
   sideOffset = 0,
   children,
+  zIndex = 50,
+  style,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+}: React.ComponentProps<typeof TooltipPrimitive.Content> & {zIndex?: number}) {
+  const mergedStyle = {
+    ...(style as React.CSSProperties | undefined),
+    zIndex,
+  };
+
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}
+        style={mergedStyle}
         className={cn(
-          "bg-background text-foreground shadow-md shadow-primary/20 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs font-semibold text-balance",
+          "bg-background text-foreground shadow-md shadow-primary/20 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs font-semibold text-balance",
           className,
         )}
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="fill-primary z-50 size-2.5 rounded-xs" />
+        <TooltipPrimitive.Arrow
+          style={{zIndex}}
+          className="fill-primary size-2.5 rounded-xs"
+        />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

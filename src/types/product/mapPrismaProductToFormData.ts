@@ -16,7 +16,7 @@ export default function mapPrismaProductToFormData(
     isFeatured: product.isFeatured,
     brand: product.brand,
     categoryId: product.categoryId,
-    subcategory: product.subcategory,
+    subcategory: product.subcategory ?? "",
     slug: product.slug,
     variants: product.variants.map((variant: Variant) => ({
       id: variant.id ?? "",

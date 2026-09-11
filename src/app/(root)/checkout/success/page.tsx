@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import {convertDecimalToNumber} from "@/helpers";
 import Image from "next/image";
 import ClearCartClient from "../_components/ClearCartClient";
+import Link from "next/link";
 
 type Props = {
   searchParams: Promise<{session_id?: string; orderId?: string}>;
@@ -80,7 +81,7 @@ export default async function SuccessPage({searchParams}: Props) {
   // cookie clearing is done client-side by calling the route `/api/cart/clear`
 
   return (
-    <div className="container bg-card/80 mx-auto rounded-md my-12 p-12">
+    <div className="container mx-auto w-[80%] bg-card/80 border-[0.3px] border-border rounded-md my-12 p-12">
       <ClearCartClient />
       <h1 className="text-4xl font-bold py-10">
         Danke für deine Bestellung
@@ -88,12 +89,12 @@ export default async function SuccessPage({searchParams}: Props) {
           ? `, ${session.customer_details.name}`
           : ""}
       </h1>
-      <p>Session Status: {session.status}</p>
+      <p>Status: {session.status}</p>
       <p>Zahlungsstatus: {session.payment_status}</p>
 
       {order ? (
-        <div className="flex flex-col md:flex-row items-start justify-start gap-5 md:gap-12 mt-6 space-y-12">
-          <div>
+        <div className="flex flex-col lg:flex-row items-start justify-start gap-5 md:gap-12 mt-6 space-y-12">
+          <div className="flex-1">
             <h3 className="text-2xl font-bold mb-4">Bestellübersicht</h3>
             <ul>
               {order.items.map((it) => {
@@ -124,37 +125,54 @@ export default async function SuccessPage({searchParams}: Props) {
                       <Image
                         src={img}
                         alt={title}
-                        width={80}
-                        height={80}
+                        width={100}
+                        height={140}
                         style={{objectFit: "cover"}}
                       />
                     ) : (
                       <div
-                        style={{width: 80, height: 80, background: "#eee"}}
+                        style={{width: 100, height: 140, background: "#eee"}}
                       />
                     )}
                     <div>
                       <div>{title}</div>
                       <div>Menge: {it.quantity}</div>
                       <div>Preis: {(it.priceAtOrder / 100).toFixed(2)} €</div>
+                      <div>Währung: {order.currency}</div>
                     </div>
                   </li>
                 );
               })}
+              <hr className="border-foreground/10" />
+              <div className="flex justify-end mt-4">
+                <div className="text-lg font-bold">
+                  Gesamt: {(order.totalAmount / 100).toFixed(2)} €
+                </div>
+              </div>
             </ul>
           </div>
-          <div>
-            <h3>Weitere Informationen</h3>
+          <div className="flex-1">
+            <h3 className="text-2xl font-bold mb-4"> Weitere Informationen</h3>
             <p>Bestellnummer: {order.id}</p>
-            <p>Erstellt am: {new Date(order.createdAt).toLocaleDateString()}</p>
-            <p>Gesamtbetrag: {(order.totalAmount / 100).toFixed(2)} €</p>
-            <p>Währung: {order.currency}</p>
-            <p>Lieferadresse: {session.billing_address_collection}</p>
+            <p>
+              Ihre Bestellung wird bearbeitet. Wir rechnen mit der Auslieferung
+              in den nächsten 2-3 Tagen.
+            </p>
+            <p>Sie erhalten in Kürze eine Bestätigung per E-Mail.</p>
+            <p>Bei Fragen können Sie uns jederzeit kontaktieren.</p>
+            <p>Blue Lill`s Support: support@bluelills.com</p>
           </div>
         </div>
       ) : (
         <p>Keine Bestelldaten gefunden.</p>
       )}
+      <div className="flex flex-col items-center justify-center w-full mt-5 z-20">
+        <ul className="flex items-start justify-center gap-5 md:gap-10 text-foreground hover:underlined">
+          <li className="text-center text-md uppercase border-[0.3px] border-foreground/10 underlined hover:border-primary cursor-pointer transition px-3 py-2 w-62">
+            <Link href="/">Zurück zum Shop</Link>
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }

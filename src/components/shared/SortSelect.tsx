@@ -55,7 +55,12 @@ export default function SortSelect({defaultValue}: {defaultValue?: string}) {
         </SelectTrigger>
 
         <SelectContent>
-          <SelectItem value={DEFAULT_SORT_VALUE}>Filtern (nach)</SelectItem>
+          <SelectItem
+            className="text-muted-foreground"
+            value={DEFAULT_SORT_VALUE}
+          >
+            Filtern (nach)
+          </SelectItem>
           <SelectItem value="createdAt.desc">Newest</SelectItem>
           <SelectItem value="createdAt.asc">Oldest</SelectItem>
           <SelectItem value="name.asc">Name A→Z</SelectItem>

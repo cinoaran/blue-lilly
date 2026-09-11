@@ -2,7 +2,7 @@
 import {zodResolver} from "@hookform/resolvers/zod";
 import {uploadFiles} from "@/uploadthing/uploadthing";
 import {dataUrlToFile} from "@/helpers/products/dataUrlToFile";
-import {useForm, useFieldArray, FieldValues} from "react-hook-form";
+import {useForm, useFieldArray, FieldValues, Resolver} from "react-hook-form";
 import VariantForm from "../_components/VariantForm";
 import {Merchant, ProductFormData} from "@/types/product/productFormData"; // Passe an
 import {ProductSchema} from "@/zod-schemas/products/ProductShema"; // Zod-Schema für Validation
@@ -61,7 +61,7 @@ export default function ProductForm({
 
   const slugManuallyEdited = useRef(false);
   const fieldClass =
-    "w-full border-b-[0.3px] rounded-none outline-none focus-visible:ring-transparent focus-visible:border-b-[0.3px] border-primary-foreground/30 py-3 text-[0.6rem] md:text-lg bg-transparent";
+    "w-full border-b-[0.3px] border-border focus-visible:underlined py-6 text-[0.6rem] md:text-lg";
 
   // Helper: Prisma → FormData (Decimals fixen)
   const mapPrismaToFormData = (
@@ -119,7 +119,14 @@ export default function ProductForm({
       };
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(ProductSchema),
+    // zodResolver returns a Resolver typed to the Zod schema shape — cast to
+    // the concrete ProductFormData so react-hook-form's generics remain
+    // consistent across this component.
+    resolver: zodResolver(ProductSchema) as unknown as Resolver<
+      ProductFormData,
+      unknown,
+      ProductFormData
+    >,
     mode: "onChange",
     defaultValues,
     reValidateMode: "onChange",
@@ -182,10 +189,11 @@ export default function ProductForm({
           const batch = safeFiles.slice(i, i + MAX_BATCH);
           const batchKeys = uniqueDataUrls.slice(i, i + MAX_BATCH);
           try {
-            const uploadResult = await uploadFiles("profilePicture", {
+            const uploadResult = (await uploadFiles("profilePicture", {
               files: batch,
-            });
-            uploadResult.forEach((r, j) => {
+            })) as Array<{ufsUrl: string}>;
+
+            uploadResult.forEach((r: {ufsUrl: string}, j: number) => {
               const key = batchKeys[j];
               if (key) dataUrlToUploaded.set(key, r.ufsUrl);
             });
@@ -707,10 +715,10 @@ export default function ProductForm({
             />
           ))}
 
-          <pre>
+          {/*  <pre>
             {JSON.stringify(form.getValues(), null, 2)}{" "}
             {JSON.stringify(form.formState.errors, null, 2)}{" "}
-          </pre>
+          </pre> */}
           <Button
             type="submit"
             disabled={isPending || !form.formState.isValid}

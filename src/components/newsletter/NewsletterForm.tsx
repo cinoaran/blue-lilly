@@ -88,14 +88,18 @@ export default function NewsletterForm({onSuccess, title}: Props) {
   }, [email]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 md:h-72 w-full overflow-hidden p-4">
+    <div className="relative flex flex-col items-center justify-center gap-12 bg-card/40 rounded-lg border-[0.3px] border-foreground/10 h-96 md:h-72 w-[90%] overflow-hidden p-4">
       <Gift className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 text-primary size-24 md:size-42" />
 
-      {title === null ? null : (
+      {title && title !== "" ? (
         <span className="font-normal text-left text-md md:text-lg">
-          {typeof title === "string"
-            ? title
-            : "Melde dich für unseren Newsletter an! Profitiere von exklusiven Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem Posteingang."}
+          {title}
+        </span>
+      ) : (
+        <span className="font-normal text-left text-md md:text-lg">
+          Melde dich für unseren Newsletter an! Profitiere von exklusiven
+          Angeboten, Neuigkeiten und spannenden Inhalten direkt in deinem
+          Posteingang. LALALALALAl
         </span>
       )}
 

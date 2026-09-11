@@ -194,6 +194,19 @@ const updateProduct = async (data: ProductFormData) => {
       }
     }
 
+    // Prevent deleting variants/options that are still referenced by cart items.
+    const cartItemsCount = await prisma.cartItem.count({
+      where: {option: {variant: {productId: validData.id}}},
+    });
+
+    if (cartItemsCount > 0) {
+      return {
+        success: false,
+        error:
+          "Update abgebrochen: Es existieren Warenkorb-Einträge, die Optionen dieses Produkts referenzieren. Entferne oder leere die betroffenen Warenkörbe, bevor du Varianten entfernst.",
+      };
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.variant.deleteMany({
         where: {productId: validData.id},

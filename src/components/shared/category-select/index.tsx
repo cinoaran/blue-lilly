@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  NativeSelect,
-  NativeSelectOptGroup,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+import GroupedSelect from "@/components/ui/GroupedSelect";
 import {SearchOption} from "@/lib/category/categoryTree";
 
 const ALL_CATEGORIES_VALUE = "__all_categories__";
@@ -16,14 +12,12 @@ const normalizeCategoryValue = (input: string) =>
 const renderCategoryOptions = (
   options: SearchOption[] = [],
   depth = 1,
-): React.ReactNode[] =>
+): {value: string; label: React.ReactNode}[] =>
   options.flatMap((option) => [
-    <NativeSelectOption
-      key={option.value}
-      value={normalizeCategoryValue(option.value)}
-    >
-      {`${"› ".repeat(depth)}${option.label}`}
-    </NativeSelectOption>,
+    {
+      value: normalizeCategoryValue(option.value),
+      label: `${"› ".repeat(depth)}${option.label}`,
+    },
     ...(option.children?.length
       ? renderCategoryOptions(option.children, depth + 1)
       : []),
@@ -42,41 +36,34 @@ const CategorySelect = ({
   value = ALL_CATEGORIES_VALUE,
   onChange,
   options,
-  disabled,
   className,
   showAllOption = true,
 }: CategorySelectProps) => {
+  // Build groups for GroupedSelect. Each top-level category becomes an optgroup,
+  // with its descendants flattened as options (matching previous behavior).
+  const groups = (options ?? []).map((opt) => ({
+    label: opt.label,
+    options: renderCategoryOptions(opt.children ?? []),
+  }));
+
+  if (showAllOption) {
+    const human = ALL_CATEGORIES_VALUE.replace(/_/g, " ").replace(
+      /\b\w/g,
+      (c) => c.toUpperCase(),
+    );
+    groups.unshift({
+      label: "",
+      options: [{value: ALL_CATEGORIES_VALUE, label: human}],
+    });
+  }
+
   return (
-    <NativeSelect
+    <GroupedSelect
+      groups={groups}
       value={value || ALL_CATEGORIES_VALUE}
-      onChange={(e) =>
-        onChange?.(
-          e.target.value === ALL_CATEGORIES_VALUE ? "" : e.target.value,
-        )
-      }
-      disabled={disabled}
+      onChange={(v) => onChange?.(v === ALL_CATEGORIES_VALUE ? "" : v)}
       className={className}
-    >
-      {showAllOption && (
-        <NativeSelectOption
-          value={ALL_CATEGORIES_VALUE}
-          className="text-sm  capitalize"
-        >
-          {ALL_CATEGORIES_VALUE.replace(/_/g, " ").replace(/\b\w/g, (c) =>
-            c.toUpperCase(),
-          )}
-        </NativeSelectOption>
-      )}
-      {options?.map((option) => (
-        <NativeSelectOptGroup
-          key={option.value}
-          label={option.label}
-          className="text-sm text-foreground/70"
-        >
-          {renderCategoryOptions(option.children)}
-        </NativeSelectOptGroup>
-      ))}
-    </NativeSelect>
+    />
   );
 };
 

@@ -277,11 +277,11 @@ const SearchInput = ({
             />
           )}
         </div>
-        <div className="flex items-center justify-start gap-2 w-full">
+        <div className="flex items-center justify-start gap-0 w-full">
           <Input
             type="search"
             placeholder="Schnellsuche Outdoor, Jacken, Schuhe, etc."
-            className={`md:w-54 webkit-search-cancel-button:appearance-none overflow-hidden border rounded-md px-3 py-3 text-base text-foreground inset-0 border-primary/35 shadow-none data-placeholder:italic data-placeholder:text-foreground/50 ${
+            className={`md:w-54 h-9 webkit-search-cancel-button:appearance-none overflow-hidden border rounded-md rounded-r-none px-3 py-3 text-base text-foreground inset-0 border-primary/35 shadow-none data-placeholder:italic data-placeholder:text-foreground ${
               isPending ? "opacity-50 pointer-events-none" : ""
             }`}
             value={query}
@@ -289,9 +289,9 @@ const SearchInput = ({
           />
           <div className="flex items-center gap-2">
             <Button
-              variant="default"
+              variant="ghost"
               type="submit"
-              className="flex justify-center hover:scale-105 transition-transform"
+              className="flex justify-center border-[0.2px] border-boder border-primary/35 transition-transform bg-background/30 rounded-l-none"
             >
               <Search size={14} />
             </Button>
@@ -299,23 +299,26 @@ const SearchInput = ({
         </div>
         <div className="flex items-center justify-center gap-2 w-full">
           <Link href="/search/wishlist" aria-label="Wunschliste öffnen">
-            <div className="relative inline-block">
+            <div className="relative">
               <Button
-                variant="outline"
+                variant="default"
                 type="button"
-                className="flex items-center justify-center hover:scale-105 transition-transform"
+                className="flex items-center justify-center bg-background/30 hover:bg-background/90 border-[0.2px] border-boder border-primary/35 transition-transform pr-10"
               >
-                Meine Wunschliste ({" "}
-                {wishlistCount && wishlistCount > 0 ? wishlistCount : 0} )
-                <Heart
-                  size={22}
-                  className={
-                    wishlistCount && wishlistCount > 0
-                      ? "text-destructive ml-2"
-                      : "text-muted-foreground ml-2"
-                  }
-                />
+                <span className="pr-2 text-foreground">
+                  Meine Wunschliste ({" "}
+                  {wishlistCount && wishlistCount > 0 ? wishlistCount : 0} )
+                </span>
               </Button>
+
+              {/* absolute heart badge on the right with rounded right corners */}
+              <span
+                className={`absolute scale-102 top-1/2 right-0 -translate-y-1/2 border-[0.2px] border-boder border-primary/35 rounded-r-md px-2 h-9 w-10 flex items-center justify-center border-l bg-background/90`}
+              >
+                <Heart
+                  className={`${wishlistCount && wishlistCount > 0 ? "text-destructive" : "text-muted-foreground"} w-4 h-4`}
+                />
+              </span>
             </div>
           </Link>
         </div>

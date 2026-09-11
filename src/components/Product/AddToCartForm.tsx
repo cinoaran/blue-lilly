@@ -45,14 +45,14 @@ export function AddToCartForm({
       <Button
         type="submit"
         disabled={pending || cannotAdd}
-        className={`w-full text-center px-3 py-0 rounded-md text-lg font-semibold uppercase transition ${
+        className={`w-full text-center px-3 h-12 rounded-md text-lg font-semibold uppercase transition ${
           cannotAdd
             ? "bg-muted text-muted-foreground cursor-not-allowed"
-            : "bg-primary text-white hover:bg-primary/90"
+            : "bg-primary text-white hover:bg-primary/70"
         }`}
       >
         <div className="flex items-center justify-center gap-5">
-          <h4 className="text-white">
+          <h4 className="text-white text-lg">
             {pending ? "Wird hinzugefügt..." : "IN DEN WARENKORB"}
           </h4>
           <span className="flex items-center justify-center pl-7 py-2 border-l border-border ">
@@ -61,7 +61,9 @@ export function AddToCartForm({
                 Keine Verfügbarkeit mehr!
               </span>
             ) : (
-              <>FOR {price != null ? `${formatPrice(price)}` : ""}</>
+              <span className="text-white font-bold">
+                PREIS {price != null ? `${formatPrice(price)}` : ""}
+              </span>
             )}
           </span>
         </div>
