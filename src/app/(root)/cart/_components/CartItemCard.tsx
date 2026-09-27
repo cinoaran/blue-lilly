@@ -71,11 +71,13 @@ export default function CartItemCard({
     item.option?.variant?.product?.name ??
     item.option?.variant?.product?.id ??
     "";
+  const productSlug = item.option?.variant?.product?.slug ?? "";
   const params = new URLSearchParams();
   if (item.option?.variant?.size)
     params.set("size", String(item.option?.variant?.size));
   if (item.option?.id) params.set("optionId", item.option.id);
-  const productHref = `/product/${slugify(productName)}${
+  const baseSlug = productSlug || slugify(productName);
+  const productHref = `/product/${baseSlug}${
     params.toString() ? `?${params.toString()}` : ""
   }`;
 

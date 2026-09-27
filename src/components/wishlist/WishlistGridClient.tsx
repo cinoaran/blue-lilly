@@ -1,131 +1,117 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
-import {ProductWithVariants} from "@/types/product/product";
+import {useEffect, useMemo, useState} from "react";
+
 import ProductCard from "@/components/Product/ProductCard";
+import {useWishlistStore} from "@/components/providers/wishlist-provider";
+import ProductsSkeleton from "@/app/(root)/skeletons/ProductsSkeleton";
+import {ProductWithVariants} from "@/types/product/product";
 
 type Props = {
-  initialProducts: ProductWithVariants[];
+  initialProducts?: ProductWithVariants[];
   allowedIds?: string[];
 };
 
 export default function WishlistGridClient({
-  initialProducts,
+  initialProducts = [],
   allowedIds,
 }: Props) {
-  const [products, setProducts] = useState<ProductWithVariants[]>(
-    initialProducts ?? [],
+  const {productIds, isLoading: isWishlistLoading} = useWishlistStore();
+
+  const [products, setProducts] =
+    useState<ProductWithVariants[]>(initialProducts);
+  const [isProductsLoading, setIsProductsLoading] = useState(
+    initialProducts.length === 0,
   );
-  // allowedIds: optional list of server-side search result ids to intersect with guest wishlist
+
+  /*
+   * Ein Set ist bei jedem Provider-Update ein neues Objekt.
+   * Daraus bauen wir einen stabilen String für die Effect-Dependency.
+   */
+  const idsKey = useMemo(() => {
+    const ids = [...productIds];
+
+    const filteredIds =
+      Array.isArray(allowedIds) && allowedIds.length > 0
+        ? ids.filter((id) => allowedIds.includes(id))
+        : ids;
+
+    return filteredIds.sort().join(",");
+  }, [allowedIds, productIds]);
 
   useEffect(() => {
-    let mounted = true;
+    const ids = idsKey ? idsKey.split(",") : [];
 
-    async function tryLoadFallbackForGuests() {
-      // If we already have initial products, nothing to do
-      if (products && products.length) return;
+    if (ids.length === 0) {
+      setProducts([]);
+      setIsProductsLoading(false);
+      return;
+    }
 
-      // Try fetching server wishlist (authenticated)
+    const controller = new AbortController();
+
+    async function loadProducts() {
+      setIsProductsLoading(true);
+
       try {
-        const res = await fetch("/api/wishlist");
-        if (res.ok) {
-          const json = await res.json();
-          const payload = json && json.wishlist ? json.wishlist : json;
-          const items = payload?.items ?? ([] as unknown);
-          type WishlistItem = {product?: ProductWithVariants};
-          const prods = (items as WishlistItem[])
-            .map((it) => it.product)
-            .filter(Boolean) as ProductWithVariants[];
-          if (mounted && prods.length) setProducts(prods);
-          return;
-        }
-        // If 401/403 -> guest, fallthrough
-      } catch {
-        console.debug("/api/wishlist fetch failed, falling back to guest");
-      }
+        const response = await fetch(
+          `/api/products?ids=${encodeURIComponent(ids.join(","))}`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          },
+        );
 
-      // Guest fallback: read product ids from localStorage
-      try {
-        const raw = window.localStorage.getItem("guest_wishlist");
-        if (!raw) return;
-        let ids: string[] = [];
-        try {
-          ids = JSON.parse(raw) as string[];
-        } catch {
-          // maybe stored as comma-separated
-          ids = raw
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-        if (!ids.length) return;
-
-        // If allowedIds provided, intersect with server-side search results
-        let candidateIds = ids;
-        if (Array.isArray(allowedIds) && allowedIds.length) {
-          const allowedSet = new Set(allowedIds);
-          candidateIds = ids.filter((id) => allowedSet.has(id));
-        }
-        if (!candidateIds.length) {
-          if (mounted) setProducts([]);
-          return;
+        if (!response.ok) {
+          throw new Error(
+            `Wishlist product request failed with status ${response.status}`,
+          );
         }
 
-        // Fetch product details from public API for candidate ids
-        const url = `/api/products?ids=${encodeURIComponent(candidateIds.join(","))}`;
-        const pres = await fetch(url);
-        if (!pres.ok) return;
-        const prods = (await pres.json()) as ProductWithVariants[];
-        if (mounted) setProducts(prods ?? []);
-      } catch {
-        console.error("Failed to load guest wishlist products");
+        const data = (await response.json()) as ProductWithVariants[];
+
+        if (!controller.signal.aborted) {
+          setProducts(data ?? []);
+        }
+      } catch (error) {
+        const isExpectedAbort =
+          error instanceof DOMException &&
+          (error.name === "AbortError" || error.name === "TimeoutError");
+
+        if (!isExpectedAbort) {
+          console.error("[wishlist-grid] products could not be loaded", error);
+
+          if (!controller.signal.aborted) {
+            setProducts([]);
+          }
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsProductsLoading(false);
+        }
       }
     }
 
-    tryLoadFallbackForGuests();
+    void loadProducts();
 
     return () => {
-      mounted = false;
+      controller.abort();
     };
-  }, [allowedIds, products]);
+  }, [idsKey]);
 
-  useEffect(() => {
-    const onUpdated = (ev: Event) => {
-      try {
-        // event detail from WishlistButton: {productId, inWishlist, wishlist}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const d = (ev as CustomEvent).detail as any;
-        if (!d) return;
-        const {productId, inWishlist} = d;
-        if (!productId) return;
+  const isLoading = isWishlistLoading || isProductsLoading;
 
-        if (inWishlist === false) {
-          // removed: filter out product
-          setProducts((prev) => prev.filter((p) => p.id !== productId));
-        } else if (inWishlist === true) {
-          // added: no-op — we don't fetch new product details here
-        }
-      } catch (e) {
-        // be defensive
-        console.error("wishlist-updated handler error", e);
-      }
-    };
+  if (isLoading) {
+    return <ProductsSkeleton limit={8} />;
+  }
 
-    window.addEventListener("wishlist-updated", onUpdated as EventListener);
-    return () => {
-      window.removeEventListener(
-        "wishlist-updated",
-        onUpdated as EventListener,
-      );
-    };
-  }, []);
-
-  if (!products || products.length === 0) {
+  if (products.length === 0) {
     return <div className="container">Keine Produkte in der Wunschliste.</div>;
   }
 
   return (
-    <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-9 w-[85vw] mx-auto">
+    <div className="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-9 w-[85vw] mx-auto">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

@@ -5,14 +5,14 @@ import {NextResponse} from "next/server";
 import prisma from "../../../lib/prisma";
 import {convertDecimalToNumber} from "@/helpers";
 import formatWishlist from "@/helpers/products/formatWishlist";
+
 // Prisma types not needed here
 
 export async function GET() {
+  const requestStartedAt = performance.now();
   const hdrs = await headers();
   const session = await ensureSession({headers: hdrs});
-
-  console.debug("/api/wishlist GET headers cookie:", hdrs.get("cookie")?.slice(0, 200));
-  console.debug("/api/wishlist GET session userId:", session?.user?.id ?? null);
+  const sessionDurationMs = performance.now() - requestStartedAt;
 
   // Ensure session is valid
   if (!session || !session.user || !session.user.id)
@@ -21,7 +21,7 @@ export async function GET() {
   if (session.user.role !== "user")
     return NextResponse.json({error: "Forbidden"}, {status: 403});
   // At this point, the session is valid and the user role is correct
-
+  const queryStartedAt = performance.now();
   const wishlist = await prisma.wishlist.findUnique({
     where: {userId: session.user.id},
     include: {
@@ -51,16 +51,17 @@ export async function GET() {
       },
     },
   });
+  const queryDurationMs = performance.now() - queryStartedAt;
 
-  if (!wishlist) {
-    console.debug("/api/wishlist GET: no wishlist for user", session.user.id);
-    return NextResponse.json({
-      wishlist: {id: null, name: null, items: []},
-    });
-  }
+  const mapped = wishlist
+    ? formatWishlist(wishlist)
+    : {wishlist: {id: null, name: null, items: []}};
 
-  const mapped = formatWishlist(wishlist);
-  console.debug("/api/wishlist GET: returning items", mapped.wishlist?.items?.length ?? 0);
+  console.debug("[wishlist:GET timings]", {
+    totalMs: Math.round(performance.now() - requestStartedAt),
+    sessionMs: Math.round(sessionDurationMs),
+    databaseMs: Math.round(queryDurationMs),
+  });
 
   return NextResponse.json(convertDecimalToNumber(mapped));
 }
@@ -70,8 +71,6 @@ export async function POST(req: Request) {
   let session: Awaited<ReturnType<typeof ensureSession>> | null = null;
   try {
     session = await ensureSession({headers: hdrs});
-
-    console.debug("/api/wishlist POST session userId:", session?.user?.id ?? null);
 
     // Ensure session is valid
     if (!session || !session.user || !session.user.id)
@@ -197,8 +196,6 @@ export async function POST(req: Request) {
     return NextResponse.json({error: "Wishlist not found"}, {status: 404});
 
   const mapped = formatWishlist(updated);
-  console.debug("/api/wishlist POST: returning items", mapped.wishlist?.items?.length ?? 0);
-
   return NextResponse.json(convertDecimalToNumber(mapped), {status: 201});
 }
 
@@ -210,7 +207,7 @@ export async function DELETE(req: Request) {
 
   const hdrs = await headers();
   const session = await ensureSession({headers: hdrs});
-  console.debug("/api/wishlist DELETE session userId:", session?.user?.id ?? null);
+
   if (!session || !session.user || !session.user.id)
     return NextResponse.json({error: "Unauthorized"}, {status: 401});
 
@@ -269,6 +266,5 @@ export async function DELETE(req: Request) {
   if (!updated)
     return NextResponse.json({wishlist: {id: null, name: null, items: []}});
   const mapped = formatWishlist(updated);
-  console.debug("/api/wishlist DELETE: returning items", mapped.wishlist?.items?.length ?? 0);
   return NextResponse.json(convertDecimalToNumber(mapped));
 }

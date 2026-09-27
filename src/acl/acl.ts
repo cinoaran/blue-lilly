@@ -22,8 +22,13 @@ export async function ensureSession(
     }
   }
 
-  const session = await getSessionOnce(opts);
-  return session;
+  try {
+    const session = await getSessionOnce(opts);
+    return session;
+  } catch (e) {
+    console.error("ensureSession: getSessionOnce failed", e);
+    return null;
+  }
 }
 
 export function requirePermission(session: Session, permission: string) {

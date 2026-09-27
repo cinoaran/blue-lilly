@@ -7,6 +7,7 @@ import {APP_DESCRIPTION, APP_NAME, APP_NAME_SECOND} from "@/constants";
 import Header from "@/components/shared/header";
 import Footer from "@/components/footer";
 import {TooltipProvider} from "@/components/ui/tooltip";
+import {WishlistProvider} from "@/components/providers/wishlist-provider";
 
 // NEUE Google Fonts als CSS-Variablen
 
@@ -41,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="de"
       suppressHydrationWarning={true}
       data-scroll-behavior="smooth"
     >
@@ -79,22 +80,24 @@ export default function RootLayout({
         className={`${displayFont.variable} ${sansFont.variable} ${comfortaa.variable} antialiased bg-background`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <main
-            className={`antialiased flex flex-col mx-auto min-h-screen w-full my-0 ${displayFont.variable} ${sansFont.variable} ${comfortaa.variable}`}
-          >
-            <SidebarProvider defaultOpen={false}>
-              <TooltipProvider>
-                <div className="relative flex items-center h-20 ">
-                  <SidebarTrigger className="absolute right-2 top-2 z-50" />
-                </div>
-                <div className="w-full">
-                  <Header />
-                  {children}
-                </div>
-              </TooltipProvider>
-            </SidebarProvider>
-          </main>
-          <Footer />
+          <WishlistProvider>
+            <main
+              className={`antialiased flex flex-col mx-auto min-h-screen w-full my-0 ${displayFont.variable} ${sansFont.variable} ${comfortaa.variable}`}
+            >
+              <SidebarProvider defaultOpen={false}>
+                <TooltipProvider>
+                  <div className="relative flex items-center h-20 ">
+                    <SidebarTrigger className="absolute right-2 top-2 z-50" />
+                  </div>
+                  <div className="w-full">
+                    <Header />
+                    {children}
+                  </div>
+                </TooltipProvider>
+              </SidebarProvider>
+            </main>
+            <Footer />
+          </WishlistProvider>
         </ThemeProvider>
       </body>
     </html>

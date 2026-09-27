@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const userId = session?.user?.id;
 
     if (userId) {
-      const result = await mergeAnonymousCartIntoUserCart(userId);
+      const result = await mergeAnonymousCartIntoUserCart();
       // log merge result for debugging (remove this log after troubleshooting)
       try {
         if (!result) {
@@ -37,13 +37,26 @@ export async function GET(request: NextRequest) {
 
       const role = (session as Session)?.user?.role as string | undefined;
       if (role === "user") {
-        const params = new URLSearchParams();
-        if (result?.warnings && result.warnings.length > 0) {
-          params.set("cartWarnings", "true");
+        // If we merged guest cart items into the user's cart, take the user
+        // directly to the cart so they see their items immediately. Otherwise
+        // use the normal login-verified landing page.
+        if (result?.mergedCount && result.mergedCount > 0) {
+          const params = new URLSearchParams();
+          if (result?.warnings && result.warnings.length > 0) {
+            params.set("cartWarnings", "true");
+          }
+          targetUrl = params.toString()
+            ? `/cart?${params.toString()}`
+            : `/cart`;
+        } else {
+          const params = new URLSearchParams();
+          if (result?.warnings && result.warnings.length > 0) {
+            params.set("cartWarnings", "true");
+          }
+          targetUrl = params.toString()
+            ? `/login-verified?${params.toString()}`
+            : `/login-verified`;
         }
-        targetUrl = params.toString()
-          ? `/login-verified?${params.toString()}`
-          : `/login-verified`;
       } else {
         if (result?.warnings && result.warnings.length > 0) {
           const params = new URLSearchParams();

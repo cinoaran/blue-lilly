@@ -20,12 +20,14 @@ import {useState} from "react";
 import {useSearchParams} from "next/navigation";
 import Spinner from "@/components/Loader/Spinner";
 import {authClient} from "@/lib/auth/auth-client";
+import {useWishlistStore} from "@/components/providers/wishlist-provider";
 import {mergeGuestWishlist} from "@/lib/wishlist/mergeGuestWishlist";
 import {toast} from "sonner";
 import {ErrorContext} from "@better-fetch/fetch";
 
 const Loginform = () => {
   const searchParams = useSearchParams();
+  const {refreshWishlist} = useWishlistStore();
 
   const urlError =
     searchParams.get("error") === "OAuthAccountNotLinked"
@@ -66,17 +68,13 @@ const Loginform = () => {
           try {
             // Merge any guest wishlist before finalizing login redirect
             const result = await mergeGuestWishlist();
-            if (result.ok && result.merged) {
-              // show a short success toast then continue
-              toast.success("Wunschliste übernommen", {duration: 2000});
-              // wait briefly so the user sees the toast
-              await new Promise((r) => setTimeout(r, 900));
-            } else if (!result.ok) {
-              // show an error toast but continue with login flow
-              toast.error("Wunschliste konnte nicht übernommen werden", {
-                duration: 3000,
-              });
-              await new Promise((r) => setTimeout(r, 900));
+            if (!result.ok) {
+              console.warn(
+                "[wishlist] guest wishlist merge failed:",
+                result.error,
+              );
+            } else if (result.merged) {
+              await refreshWishlist();
             }
           } catch (e) {
             // ignore merge errors and continue with login flow

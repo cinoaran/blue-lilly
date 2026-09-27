@@ -22,7 +22,17 @@ type SelectedVariant = {
   sellPrice?: number | null;
 };
 
-const ProductCard = ({product}: {product: ProductWithVariants}) => {
+type ProductCardProps = {
+  product: ProductWithVariants;
+  isInWishlist?: boolean;
+  onWishlistToggle?: () => void | Promise<void>;
+};
+
+const ProductCard = ({
+  product,
+  isInWishlist,
+  onWishlistToggle,
+}: ProductCardProps) => {
   const variants = product.variants ?? [];
   const firstVariant = variants[0];
   const firstOption = firstVariant?.options?.[0];
@@ -191,8 +201,10 @@ const ProductCard = ({product}: {product: ProductWithVariants}) => {
         <div className="absolute -top-3 -right-3 overflow-none z-30">
           <WishlistButton
             productId={product.id}
-            initialInWishlist={false}
             size={20}
+            isInWishlist={isInWishlist}
+            isLoading={undefined}
+            onToggle={onWishlistToggle}
           />
         </div>
 

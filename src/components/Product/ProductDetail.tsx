@@ -22,6 +22,7 @@ import {Badge} from "@/components/ui/badge";
 import {Separator} from "@/components/ui/separator";
 import {CirclePile, Heart as HeartIcon} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "../ui/tooltip";
+import {useWishlist} from "@/hooks/use-wishlist";
 
 type CartItem = {
   optionId: string;
@@ -152,67 +153,12 @@ const ProductDetail = ({
     () => displayVariant?.options ?? [],
   );
   const [isThumbsFading, setIsThumbsFading] = useState(false);
-  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const [addedToWishlist, setAddedToWishlist] = useState(
-    Boolean(initialInWishlist ?? false),
-  );
 
-  // On mount, check whether the current product is already in the user's
-  // wishlist. Prefer guest localStorage (`guest_wishlist`) for unauthenticated
-  // users so the page doesn't need a network roundtrip to show the state.
-  React.useEffect(() => {
-    let mounted = true;
-
-    // If server provided the initial state, no client check is necessary.
-    if (typeof initialInWishlist !== "undefined")
-      return () => {
-        mounted = false;
-      };
-
-    try {
-      const rawGuest = window.localStorage.getItem("guest_wishlist");
-      if (rawGuest) {
-        let ids: string[] = [];
-        try {
-          ids = JSON.parse(rawGuest) as string[];
-        } catch {
-          ids = rawGuest
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-        if (ids.includes(product.id)) {
-          if (mounted) setAddedToWishlist(true);
-          return () => {
-            mounted = false;
-          };
-        }
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-
-    async function checkWishlist() {
-      try {
-        const res = await fetch("/api/wishlist");
-        if (!res.ok) return; // 401/403 or other non-ok -> ignore
-        const json = await res.json();
-        const payload =
-          json && typeof json === "object" ? (json.wishlist ?? json) : null;
-        const exists = (payload?.items ?? []).some(
-          (it: {productId: string}) => it.productId === product.id,
-        );
-        if (mounted && exists) setAddedToWishlist(true);
-      } catch {
-        // ignore network errors
-      }
-    }
-
-    void checkWishlist();
-    return () => {
-      mounted = false;
-    };
-  }, [product.id, initialInWishlist]);
+  const {
+    isInWishlist,
+    isLoading: isWishlistLoading,
+    toggleWishlist,
+  } = useWishlist(product.id);
 
   useEffect(() => {
     setActiveImages(
@@ -223,78 +169,21 @@ const ProductDetail = ({
     setActiveImageIndex(0);
   }, [displayOption, paramsSize, paramsOptionId]);
 
-  // Auto-add to wishlist when the currently displayed option is out of stock.
   const doAddToWishlist = async () => {
-    if (!displayOption?.id || isAddingToWishlist || addedToWishlist) return;
-    setIsAddingToWishlist(true);
-    try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({productId: product.id}),
-      });
-      if (res.status === 401) {
-        // Fallback for unauthenticated users: persist to guest_wishlist in
-        // localStorage so guests can use the wishlist feature offline. Also
-        // dispatch the `wishlist-updated` event so other UI can react.
-        try {
-          const raw = window.localStorage.getItem("guest_wishlist");
-          let ids: string[] = [];
-          if (raw) {
-            try {
-              ids = JSON.parse(raw) as string[];
-            } catch {
-              ids = raw
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean);
-            }
-          }
-          if (!ids.includes(product.id)) ids.push(product.id);
-          try {
-            window.localStorage.setItem("guest_wishlist", JSON.stringify(ids));
-          } catch {
-            window.localStorage.setItem("guest_wishlist", ids.join(","));
-          }
-          try {
-            window.dispatchEvent(
-              new CustomEvent("wishlist-updated", {
-                detail: {
-                  productId: product.id,
-                  inWishlist: true,
-                  wishlist: null,
-                },
-              }),
-            );
-          } catch {}
-          setAddedToWishlist(true);
-        } catch (e) {
-          console.debug(
-            "add to wishlist unauthorized; no guest storage available",
-            e,
-          );
-        }
-        return;
-      }
-      if (res.ok) {
-        setAddedToWishlist(true);
-        return;
-      }
-    } catch (e) {
-      console.error("add to wishlist failed", e);
-    } finally {
-      setIsAddingToWishlist(false);
+    if (!displayOption?.id || isWishlistLoading || isInWishlist) {
+      return;
     }
+
+    await toggleWishlist();
   };
 
-  useEffect(() => {
+  /*   useEffect(() => {
     const qtyNow = Number(displayOption?.quantity ?? 0);
     if (qtyNow === 0) {
       void doAddToWishlist();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayOption?.id, displayOption?.quantity]);
+  }, [displayOption?.id, displayOption?.quantity]); */
 
   // Thumbnail updates are driven directly from the size button onClick handlers
   // to keep the interaction simple and deterministic.
@@ -386,7 +275,7 @@ const ProductDetail = ({
             <div className="flex flex-col items-center justify-center gap-5 border-b-[0.5px] border-border py-10">
               <h2 className="font-bold flex items-center gap-2 text-2xl">
                 {product.brand} {product.name}
-                {(initialInWishlist || addedToWishlist) && (
+                {initialInWishlist && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="ml-2">
@@ -586,87 +475,21 @@ const ProductDetail = ({
                   <div className="w-full md:w-3/4 text-center">
                     <button
                       type="button"
-                      disabled={isAddingToWishlist || addedToWishlist}
+                      disabled={isWishlistLoading || isInWishlist}
                       className={`w-full text-center bg-red-400 px-3 py-0 rounded-md text-lg font-semibold uppercase transition ${
-                        isAddingToWishlist || addedToWishlist
+                        isWishlistLoading || isInWishlist
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:bg-primary/90"
                       }`}
                       onClick={async () => {
-                        if (!displayOption?.id) return;
-                        try {
-                          setIsAddingToWishlist(true);
-                          const res = await fetch("/api/wishlist", {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify({productId: product.id}),
-                          });
-                          if (res.status === 401) {
-                            // Guest fallback: persist to localStorage so non-authenticated
-                            // users can still use the wishlist feature.
-                            try {
-                              const raw =
-                                window.localStorage.getItem("guest_wishlist");
-                              let ids: string[] = [];
-                              if (raw) {
-                                try {
-                                  ids = JSON.parse(raw) as string[];
-                                } catch {
-                                  ids = raw
-                                    .split(",")
-                                    .map((s) => s.trim())
-                                    .filter(Boolean);
-                                }
-                              }
-                              if (!ids.includes(product.id))
-                                ids.push(product.id);
-                              try {
-                                window.localStorage.setItem(
-                                  "guest_wishlist",
-                                  JSON.stringify(ids),
-                                );
-                              } catch {
-                                window.localStorage.setItem(
-                                  "guest_wishlist",
-                                  ids.join(","),
-                                );
-                              }
-                              try {
-                                window.dispatchEvent(
-                                  new CustomEvent("wishlist-updated", {
-                                    detail: {
-                                      productId: product.id,
-                                      inWishlist: true,
-                                      wishlist: null,
-                                    },
-                                  }),
-                                );
-                              } catch {}
-                              setAddedToWishlist(true);
-                            } catch (e) {
-                              console.error(
-                                "Failed to persist guest wishlist",
-                                e,
-                              );
-                            }
-                            return;
-                          }
-                          if (res.ok) {
-                            setAddedToWishlist(true);
-                            return;
-                          }
-                        } catch (e) {
-                          console.error("manual add to wishlist failed", e);
-                        } finally {
-                          setIsAddingToWishlist(false);
-                        }
+                        void doAddToWishlist();
                       }}
                     >
                       <div className="flex items-center justify-center gap-5 text-white">
                         <h4>
-                          {isAddingToWishlist
-                            ? "Wird hinzugefügt..."
-                            : addedToWishlist
+                          {isWishlistLoading
+                            ? "Wird geladen..."
+                            : isInWishlist
                               ? "Bereits in Wunschliste"
                               : "Zur Wunschliste"}
                         </h4>
